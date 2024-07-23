@@ -14,7 +14,10 @@ public:
   enum Flag {
     FLAG_NONE = 0x00,
     FLAG_BACKGROUND = 0x01,
-    FLAG_HIGHLIGHT = 0x02
+    FLAG_HIGHLIGHT = 0x02,
+    FLAG_HIGHLIGHT_SELECTED = 0x04,
+    FLAG_HIGHLIGHT_IMPACTED = 0x08,
+    FLAG_HIGHLIGHT_BACKGROUND = 0x10,
   };
 
   CSGNode(Flag flags = FLAG_NONE) : flags(flags) {}
@@ -24,8 +27,13 @@ public:
 
   [[nodiscard]] const BoundingBox& getBoundingBox() const { return this->bbox; }
   [[nodiscard]] unsigned int getFlags() const { return this->flags; }
+
+  [[nodiscard]] bool isSelected() const { return this->flags & FLAG_HIGHLIGHT_SELECTED; }
+  [[nodiscard]] bool isImpacted() const { return this->flags & FLAG_HIGHLIGHT_IMPACTED; }
   [[nodiscard]] bool isHighlight() const { return this->flags & FLAG_HIGHLIGHT; }
   [[nodiscard]] bool isBackground() const { return this->flags & FLAG_BACKGROUND; }
+  void setSelected(bool on) { on ? this->flags |= FLAG_HIGHLIGHT_SELECTED : this->flags &= ~FLAG_HIGHLIGHT_SELECTED; }
+  void setImpacted(bool on) { on ? this->flags |= FLAG_HIGHLIGHT_IMPACTED : this->flags &= ~FLAG_HIGHLIGHT_IMPACTED; }
   void setHighlight(bool on) { on ? this->flags |= FLAG_HIGHLIGHT : this->flags &= ~FLAG_HIGHLIGHT; }
   void setBackground(bool on) { on ? this->flags |= FLAG_BACKGROUND : this->flags &= ~FLAG_BACKGROUND; }
 

@@ -178,7 +178,11 @@ void OpenCSGRenderer::createCSGVBOProducts(
         csgmode_e csgmode = get_csgmode(highlight_mode, background_mode);
 
         ColorMode colormode = ColorMode::NONE;
-        if (highlight_mode) {
+        if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
+            colormode = ColorMode::HIGHLIGHT_SELECTED;
+        } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
+            colormode = ColorMode::HIGHLIGHT_IMPACTED;
+        } else if (highlight_mode) {
           colormode = ColorMode::HIGHLIGHT;
         } else if (background_mode) {
           colormode = ColorMode::BACKGROUND;
