@@ -48,7 +48,7 @@ bool VBORenderer::getShaderColor(Renderer::ColorMode colormode, const Color4f& c
 {
   Color4f basecol;
   if (Renderer::getColor(colormode, basecol)) {
-    if (colormode == ColorMode::BACKGROUND || colormode != ColorMode::HIGHLIGHT) {
+    if (colormode == ColorMode::BACKGROUND || (colormode != ColorMode::HIGHLIGHT && colormode != ColorMode::HIGHLIGHT_SELECTED && colormode != ColorMode::HIGHLIGHT_IMPACTED) ) {
       basecol = Color4f(color[0] >= 0 ? color[0] : basecol[0],
                         color[1] >= 0 ? color[1] : basecol[1],
                         color[2] >= 0 ? color[2] : basecol[2],

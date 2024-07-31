@@ -1298,7 +1298,7 @@ void MainWindow::instantiateRoot()
    Generates CSG tree for OpenCSG evaluation.
    Assumes that the design has been parsed and evaluated (this->root_node is set)
  */
-void MainWindow::compileCSG()
+void MainWindow::compileCSG(std::shared_ptr<const AbstractNode> selected_node)
 {
   OpenSCAD::hardwarnings = Preferences::inst()->getValue("advanced/enableHardwarnings").toBool();
   try{
@@ -1312,7 +1312,7 @@ void MainWindow::compileCSG()
 
     GeometryEvaluator geomevaluator(this->tree);
 #ifdef ENABLE_OPENCSG
-    CSGTreeEvaluator csgrenderer(this->tree, &geomevaluator);
+    CSGTreeEvaluator csgrenderer(this->tree, selected_node, &geomevaluator);
 #endif
 
     if (!isClosing) progress_report_prep(this->root_node, report_func, this);
@@ -1321,6 +1321,7 @@ void MainWindow::compileCSG()
 #ifdef ENABLE_OPENCSG
       this->processEvents();
       this->csgRoot = csgrenderer.buildCSGTree(*root_node);
+      //csgrenderer.selectAndHighlightCSGTree(*root_node);
 #endif
       renderStatistic.printCacheStatistic();
       this->processEvents();
@@ -2422,7 +2423,9 @@ void MainWindow::rightClick(QPoint mouse)
         action->setProperty("file", QString::fromStdString(location.fileName()));
         action->setProperty("line", location.firstLine());
         action->setProperty("column", location.firstColumn());
+        action->setProperty("id", QString::fromStdString(std::to_string(step->index())));
 
+        connect(action, SIGNAL(triggered()), this, SLOT(setSelectedObjectPreview()));
         connect(action, SIGNAL(triggered()), this, SLOT(setCursor()));
       }
     }
@@ -2462,6 +2465,61 @@ void MainWindow::setCursor()
   // move the cursor, the editor is 0 based whereby location is 1 based
   this->activeEditor->setCursorPosition(line - 1, column - 1);
 }
+
+/**
+ * Expects the sender to have properties "file", "line" and "column" defined
+ * and id.
+ */
+void MainWindow::setSelectedObjectPreview()
+{
+  auto *action = qobject_cast<QAction *>(sender());
+  if (!action || !action->property("file").isValid() || !action->property("line").isValid() ||
+      !action->property("column").isValid()) {
+    return;
+  }
+
+  auto file = action->property("file").toString();
+  auto line = action->property("line").toInt();
+  auto column = action->property("column").toInt();
+  auto id = action->property("id").toInt();
+
+  std::deque<std::shared_ptr<const AbstractNode>> path_select;
+
+  selected_node = root_node->getNodeByID(id, path_select);
+  std::cout << "        clicked object is '" << selected_node->verbose_name() <<"'" << std::endl;
+
+  std::vector<std::shared_ptr<CSGNode>> highlight_terms;
+  CSGTreeEvaluator::selectAndHighlightCSGTree(*selected_node.get(),
+                                              *root_node.get(),
+                                              csgRoot, highlight_terms);
+
+  if (highlight_terms.size() > 0) {
+    size_t normalizelimit = 2ul * Preferences::inst()->getValue("advanced/openCSGLimit").toUInt();
+    CSGTreeNormalizer normalizer(normalizelimit);
+
+    LOG("Compiling highlights (%1$d CSG Trees)...", highlight_terms.size());
+    this->processEvents();
+
+    this->highlights_products.reset(new CSGProducts());
+    for (const auto& highlight_term : highlight_terms) {
+      auto nterm = normalizer.normalize(highlight_term);
+      if (nterm) {
+        this->highlights_products->import(nterm);
+      }
+    }
+  } else {
+    this->highlights_products.reset();
+  }
+  this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
+                                                            this->highlights_products,
+                                                            this->background_products);
+
+  viewModePreview();
+
+  // request the update of the 3D view to take into account the change of selection.
+  this->qglview->update();
+}
+
 
 void MainWindow::setLastFocus(QWidget *widget) {
   this->lastFocus = widget;

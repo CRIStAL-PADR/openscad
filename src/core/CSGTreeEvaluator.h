@@ -15,8 +15,10 @@ class Tree;
 class CSGTreeEvaluator : public NodeVisitor
 {
 public:
-  CSGTreeEvaluator(const Tree& tree, GeometryEvaluator *geomevaluator = nullptr)
-    : tree(tree), geomevaluator(geomevaluator) {
+  CSGTreeEvaluator(const Tree& tree,
+                   std::shared_ptr<const AbstractNode> selected_node_={},
+                   GeometryEvaluator *geomevaluator = nullptr)
+    : tree(tree), selectedNodes(selected_node_), geomevaluator(geomevaluator) {
   }
 
   Response visit(State& state, const AbstractNode& node) override;
@@ -30,6 +32,13 @@ public:
   Response visit(State& state, const CgalAdvNode& node) override;
 
   std::shared_ptr<CSGNode> buildCSGTree(const AbstractNode& node);
+
+  static void selectAndHighlightCSGTree(const AbstractNode& selectedNodes,
+                                        const AbstractNode& node,
+                                        std::shared_ptr<CSGNode> csgnode,
+                                        std::vector<std::shared_ptr<CSGNode>>& highlighted);
+  static void selectAndHighlightCSGTree(const AbstractNode& selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag> &newflags, bool isSelected, bool isImpacted);
+  static void selectAndHighlightCSGTree(std::shared_ptr<CSGNode>& node, int depth, std::map<int, CSGNode::Flag> &newflags, std::vector<std::shared_ptr<CSGNode>>& highlighted);
 
   [[nodiscard]] const std::shared_ptr<CSGNode>& getRootNode() const {
     return this->rootNode;
@@ -55,6 +64,7 @@ private:
 
 protected:
   const Tree& tree;
+  std::shared_ptr<const AbstractNode> selectedNodes;
   GeometryEvaluator *geomevaluator;
   std::shared_ptr<CSGNode> rootNode;
   std::vector<std::shared_ptr<CSGNode>> highlightNodes;

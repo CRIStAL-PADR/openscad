@@ -50,8 +50,8 @@ Renderer::Renderer()
   // CUTOUT is set by this object's colorscheme
   colormap[ColorMode::HIGHLIGHT] = {255, 81, 81, 128};
 
-  colormap[ColorMode::HIGHLIGHT_SELECTED] = {162, 252, 3, 128};
-  colormap[ColorMode::HIGHLIGHT_IMPACTED] = {200, 200, 200, 50};
+  colormap[ColorMode::HIGHLIGHT_SELECTED] = {162, 252, 3, 200};
+  colormap[ColorMode::HIGHLIGHT_IMPACTED] = {128, 128, 128, 200};
   colormap[ColorMode::HIGHLIGHT_BACKGROUND] = {255, 0, 0, 128};
 
   colormap[ColorMode::BACKGROUND] = {180, 180, 180, 128};

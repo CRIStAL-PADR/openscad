@@ -40,7 +40,7 @@ static std::shared_ptr<AbstractNode> lazyUnionNode(const ModuleInstantiation *in
   if (Feature::ExperimentalLazyUnion.is_enabled()) {
     return std::make_shared<ListNode>(inst);
   } else {
-    return std::make_shared<GroupNode>(inst);
+    return std::make_shared<GroupNode>(inst, inst->name());
   }
 }
 

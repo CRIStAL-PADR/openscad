@@ -113,6 +113,7 @@ private slots:
   void openCSGSettingsChanged();
   void consoleOutput(const Message& msgObj);
   void setCursor();
+  void setSelectedObjectPreview();
   void measureFinished();
   void errorLogOutput(const Message& log_msg);
 
@@ -135,7 +136,7 @@ private:
   void setRenderVariables(ContextHandle<BuiltinContext>& context);
   void updateCompileResult();
   void compile(bool reload, bool forcedone = false);
-  void compileCSG();
+  void compileCSG(std::shared_ptr<const AbstractNode> selectedNode=nullptr);
   bool checkEditorModified();
   QString dumpCSGTree(const std::shared_ptr<AbstractNode>& root);
 
@@ -362,6 +363,7 @@ private:
   static QElapsedTimer *progressThrottle;
   QWidget *lastFocus; // keep track of active copyable widget (Editor|Console) for global menu action Edit->Copy
 
+  std::shared_ptr<const AbstractNode> selected_node; // The currently selected node. nullptr if none.
   std::shared_ptr<CSGNode> csgRoot; // Result of the CSGTreeEvaluator
   std::shared_ptr<CSGNode> normalizedRoot; // Normalized CSG tree
   std::shared_ptr<CSGProducts> root_products;

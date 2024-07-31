@@ -146,7 +146,14 @@ void LegacyOpenCSGRenderer::renderCSGProducts(const std::shared_ptr<CSGProducts>
 
       ColorMode colormode = ColorMode::NONE;
       if (highlight_mode) {
-        colormode = ColorMode::HIGHLIGHT;
+          if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
+              colormode = ColorMode::HIGHLIGHT_SELECTED;
+          } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
+              colormode = ColorMode::HIGHLIGHT_IMPACTED;
+          } else {
+              colormode = ColorMode::HIGHLIGHT;
+          }
+
       } else if (background_mode) {
         colormode = ColorMode::BACKGROUND;
       } else {
@@ -180,7 +187,13 @@ void LegacyOpenCSGRenderer::renderCSGProducts(const std::shared_ptr<CSGProducts>
 
       ColorMode colormode = ColorMode::NONE;
       if (highlight_mode) {
-        colormode = ColorMode::HIGHLIGHT;
+          if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
+              colormode = ColorMode::HIGHLIGHT_SELECTED;
+          } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
+              colormode = ColorMode::HIGHLIGHT_IMPACTED;
+          } else {
+              colormode = ColorMode::HIGHLIGHT;
+          }
       } else if (background_mode) {
         colormode = ColorMode::BACKGROUND;
       } else {

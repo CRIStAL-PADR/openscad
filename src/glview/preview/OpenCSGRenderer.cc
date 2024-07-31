@@ -177,17 +177,27 @@ void OpenCSGRenderer::createCSGVBOProducts(
         const Color4f &c = csgobj.leaf->color;
         csgmode_e csgmode = get_csgmode(highlight_mode, background_mode);
 
+        std::cout << "Rendering: INTERSECTION: " << highlight_mode << " " <<  csgobj.leaf->dump() << std::endl;
         ColorMode colormode = ColorMode::NONE;
-        if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
-            colormode = ColorMode::HIGHLIGHT_SELECTED;
-        } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
-            colormode = ColorMode::HIGHLIGHT_IMPACTED;
-        } else if (highlight_mode) {
-          colormode = ColorMode::HIGHLIGHT;
+        if(highlight_mode)
+        {
+            if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
+                std::cout << "                       : selected" << std::endl;
+                colormode = ColorMode::HIGHLIGHT_SELECTED;
+            } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
+                std::cout << "                       : impacted" << std::endl;
+                colormode = ColorMode::HIGHLIGHT_IMPACTED;
+            } else {
+                std::cout << "                       : hightlight" << std::endl;
+                colormode = ColorMode::HIGHLIGHT;
+            }
         } else if (background_mode) {
-          colormode = ColorMode::BACKGROUND;
+            std::cout << "                       : background" << std::endl;
+            colormode = ColorMode::BACKGROUND;
         } else {
-          colormode = ColorMode::MATERIAL;
+            std::cout << "                       : material" << std::endl;
+
+            colormode = ColorMode::MATERIAL;
         }
 
         Color4f color;
@@ -260,17 +270,26 @@ void OpenCSGRenderer::createCSGVBOProducts(
 
     for (const auto &csgobj : product.subtractions) {
       if (csgobj.leaf->polyset) {
+        std::cout << "Rendering: SUBTRACTION: " << highlight_mode <<  " " << csgobj.leaf->dump() << std::endl;
+
         const Color4f &c = csgobj.leaf->color;
         csgmode_e csgmode = get_csgmode(highlight_mode, background_mode,
                                         OpenSCADOperator::DIFFERENCE);
 
         ColorMode colormode = ColorMode::NONE;
-        if (highlight_mode) {
-          colormode = ColorMode::HIGHLIGHT;
+        if (highlight_mode)
+        {
+            if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_SELECTED) {
+                colormode = ColorMode::HIGHLIGHT_SELECTED;
+            } else if (csgobj.flags == CSGNode::Flag::FLAG_HIGHLIGHT_IMPACTED) {
+                colormode = ColorMode::HIGHLIGHT_IMPACTED;
+            } else {
+                colormode = ColorMode::HIGHLIGHT;
+            }
         } else if (background_mode) {
-          colormode = ColorMode::BACKGROUND;
+            colormode = ColorMode::BACKGROUND;
         } else {
-          colormode = ColorMode::CUTOUT;
+            colormode = ColorMode::MATERIAL;
         }
 
         Color4f color;
