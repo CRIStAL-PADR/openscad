@@ -30,8 +30,6 @@ void CSGTreeEvaluator::selectAndHighlightCSGTree(std::shared_ptr<CSGNode>& node,
     {
         if(hightlight.find(leaf->index) != hightlight.end())
         {
-            std::cout << "WE NEED TO RENDER " << leaf->dump() << std::endl;
-
             auto& leafnode = hightlight[leaf->index];
             node->setSelected(false);
             node->setImpacted(false);
@@ -65,17 +63,10 @@ void CSGTreeEvaluator::selectAndHighlightCSGTree(const AbstractNode& selectedNod
 
 void CSGTreeEvaluator::selectAndHighlightCSGTree(const AbstractNode& selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag>& hightlight, bool isSelected, bool isImpacted)
 {
-    std::cout << "NODE IS: " << node.name() << ":" << node.index() << std::endl;
-    std::cout << "                           : is Selected: " << isSelected << std::endl;;
-    std::cout << "                           : is Impacted: " << isImpacted << std::endl;
-
     if( selectedNodes.index() == node.index() )
         isSelected = true;
     if (node.modinst == selectedNodes.modinst)
         isImpacted = true;
-    std::cout << "                           : is Selected2: " << isSelected << std::endl;;
-    std::cout << "                           : is Impacted2: " << isImpacted << std::endl;
-
 
     if(isSelected)
         hightlight[node.index()] = CSGNode::FLAG_HIGHLIGHT_SELECTED;
@@ -83,7 +74,6 @@ void CSGTreeEvaluator::selectAndHighlightCSGTree(const AbstractNode& selectedNod
 
     for(auto& child : node.getChildren())
     {
-        std::cout << "CHILDREN ARE: " << child->name() << ":" << child->index() << std::endl;
         selectAndHighlightCSGTree(selectedNodes, *child.get(), hightlight, isSelected, isImpacted);
     }
 }
