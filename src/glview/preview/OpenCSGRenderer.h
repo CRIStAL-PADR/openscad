@@ -39,7 +39,11 @@ public:
   [[nodiscard]] size_t csgObjectIndex() const { return csg_object_index_; }
   void setCsgObjectIndex(size_t csg_object_index) { csg_object_index_ = csg_object_index; }
 
+  [[nodiscard]] bool isSelected() const { return is_selected_; }
+  void setIsSelected(bool is_selected) { is_selected_ = is_selected; }
+
 private:
+  bool is_selected_ {false};
   size_t csg_object_index_;
 };
 
@@ -65,7 +69,12 @@ public:
   [[nodiscard]] const std::vector<OpenCSG::Primitive *>& primitives() const { return primitives_; }
   [[nodiscard]] const std::vector<std::shared_ptr<VertexState>>& states() const { return *(states_.get()); }
 
+  bool isSelected(){ return isSelected_; }
+  void setSelected(bool state){ isSelected_ = state;}
+
 private:
+  bool isSelected_ {false};
+
   // primitives_ is used to create the OpenCSG depth buffer (unlit rendering).
   // states_ is used for color rendering (using GL_EQUAL).
   // Both may use the same underlying VBOs
@@ -84,8 +93,10 @@ public:
       glDeleteBuffers(all_vbos_.size(), all_vbos_.data());
     }
   }
+  void setHighlights(std::shared_ptr<CSGProducts> hi);
   void prepare(bool showfaces, bool showedges, const shaderinfo_t *shaderinfo = nullptr) override;
   void draw(bool showfaces, bool showedges, const shaderinfo_t *shaderinfo = nullptr) const override;
+  void renderImmediate(std::shared_ptr<CSGProducts>) const;
 
   BoundingBox getBoundingBox() const override;
 private:
@@ -102,4 +113,6 @@ private:
   std::shared_ptr<CSGProducts> root_products_;
   std::shared_ptr<CSGProducts> highlights_products_;
   std::shared_ptr<CSGProducts> background_products_;
+
+  std::map<size_t, bool> is_selected;
 };

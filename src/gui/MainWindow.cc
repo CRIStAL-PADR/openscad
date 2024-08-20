@@ -1394,7 +1394,7 @@ void MainWindow::compileCSG(std::shared_ptr<const AbstractNode> selected_node)
       LOG("Normalized tree has %1$d elements!",
           (this->root_products ? this->root_products->size() : 0));
 #ifdef USE_LEGACY_RENDERERS
-      this->opencsgRenderer = std::make_shared<LegacyOpenCSGRenderer>(this->root_products,
+      this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
                                                                       this->highlights_products,
                                                                       this->background_products);
 #else
@@ -2417,6 +2417,7 @@ void MainWindow::rightClick(QPoint mouse)
         ss << step->verbose_name() << " (" << relname << ":" << location.firstLine() << ")";
       }
 
+     
       // Prepare the action to be sent
       auto action = tracemenu.addAction(QString::fromStdString(ss.str()));
       if (editorDock->isVisible()) {
@@ -2425,7 +2426,7 @@ void MainWindow::rightClick(QPoint mouse)
         action->setProperty("column", location.firstColumn());
         action->setProperty("id", QString::fromStdString(std::to_string(step->index())));
 
-        connect(action, SIGNAL(triggered()), this, SLOT(setSelectedObjectPreview()));
+        connect(action, SIGNAL(hovered()), this, SLOT(setSelectedObjectPreview()));
         connect(action, SIGNAL(triggered()), this, SLOT(setCursor()));
       }
     }
@@ -2485,9 +2486,11 @@ void MainWindow::setSelectedObjectPreview()
 
   std::deque<std::shared_ptr<const AbstractNode>> path_select;
 
-  selected_node = root_node->getNodeByID(id, path_select);
-  std::cout << "        clicked object is '" << selected_node->verbose_name() <<"'" << std::endl;
+  auto new_selected_node = root_node->getNodeByID(id, path_select);
+  if(selected_node == new_selected_node)
+      return;
 
+  selected_node = new_selected_node;
   std::vector<std::shared_ptr<CSGNode>> highlight_terms;
   CSGTreeEvaluator::selectAndHighlightCSGTree(*selected_node.get(),
                                               *root_node.get(),
@@ -2496,10 +2499,6 @@ void MainWindow::setSelectedObjectPreview()
   if (highlight_terms.size() > 0) {
     size_t normalizelimit = 2ul * Preferences::inst()->getValue("advanced/openCSGLimit").toUInt();
     CSGTreeNormalizer normalizer(normalizelimit);
-
-    LOG("Compiling highlights (%1$d CSG Trees)...", highlight_terms.size());
-    this->processEvents();
-
     this->highlights_products.reset(new CSGProducts());
     for (const auto& highlight_term : highlight_terms) {
       auto nterm = normalizer.normalize(highlight_term);
@@ -2510,9 +2509,10 @@ void MainWindow::setSelectedObjectPreview()
   } else {
     this->highlights_products.reset();
   }
-  this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
-                                                            this->highlights_products,
-                                                            this->background_products);
+
+  auto rdr = dynamic_cast<OpenCSGRenderer*>(this->opencsgRenderer.get());
+  if(rdr)
+      rdr->setHighlights(this->highlights_products);
 
   viewModePreview();
 
