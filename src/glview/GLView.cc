@@ -169,8 +169,13 @@ void GLView::paintGL()
     // FIXME: This belongs in the OpenCSG renderer, but it doesn't know about this ID yet
     OpenCSG::setContext(this->opencsg_id);
 #endif
+    std::cout << "OPENSG rendering start " <<  std::endl;
+    auto begin{std::chrono::steady_clock::now()};
     this->renderer->prepare(showfaces, showedges);
     this->renderer->draw(showfaces, showedges);
+    auto end{std::chrono::steady_clock::now()};
+    const std::chrono::milliseconds ms{std::chrono::duration_cast<std::chrono::milliseconds>(end - begin)};
+    std::cout << "OPENSG rendering time: " << ms.count() << " ms per frame" << std::endl;
   }
   Vector3d eyedir(this->modelview[2],this->modelview[6],this->modelview[10]);
   glColor3f(1,0,0);
