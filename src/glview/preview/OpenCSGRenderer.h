@@ -106,6 +106,7 @@ private:
 #endif // ENABLE_OPENCSG
   void createCSGVBOProducts(const CSGProducts& products, const Renderer::shaderinfo_t *shaderinfo, bool highlight_mode, bool background_mode);
   void renderCSGVBOProducts(bool showedges, const Renderer::shaderinfo_t *shaderinfo) const;
+  void renderHighlightedCSGVBOProducts(bool showedges, const Renderer::shaderinfo_t *shaderinfo) const;
 
 private:
   std::vector<std::unique_ptr<OpenCSGVBOProduct>> vbo_vertex_products_;
@@ -114,5 +115,5 @@ private:
   std::shared_ptr<CSGProducts> highlights_products_;
   std::shared_ptr<CSGProducts> background_products_;
 
-  std::map<size_t, bool> is_selected;
+  std::map<size_t, ColorMode> is_selected;
 };
