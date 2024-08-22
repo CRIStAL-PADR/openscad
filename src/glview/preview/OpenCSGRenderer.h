@@ -86,7 +86,6 @@ class OpenCSGRenderer : public VBORenderer
 {
 public:
   OpenCSGRenderer(std::shared_ptr<CSGProducts> root_products,
-                  std::shared_ptr<CSGProducts> highlights_products,
                   std::shared_ptr<CSGProducts> background_products);
   ~OpenCSGRenderer() override {
     if (all_vbos_.size()) {

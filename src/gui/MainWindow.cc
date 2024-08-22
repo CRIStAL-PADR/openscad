@@ -1351,21 +1351,27 @@ void MainWindow::compileCSG(std::shared_ptr<const AbstractNode> selected_node)
       }
     }
 
+
+    //std::cout << "I will prepare hightlight" << std::endl;
+    //CSGTreeEvaluator::selectAndHighlightCSGTree(nullptr,
+    //                                            *root_node.get(),
+    //                                            csgRoot, highlight_terms);
     const std::vector<std::shared_ptr<CSGNode>>& highlight_terms = csgrenderer.getHighlightNodes();
+    std::cout << "I will done hightlight" << std::endl;
     if (highlight_terms.size() > 0) {
       LOG("Compiling highlights (%1$d CSG Trees)...", highlight_terms.size());
       this->processEvents();
 
-      this->highlights_products.reset(new CSGProducts());
+      this->compile_time_highlights_products.reset(new CSGProducts());
       for (const auto& highlight_term : highlight_terms) {
         auto nterm = normalizer.normalize(highlight_term);
         if (nterm) {
-          this->highlights_products->import(nterm);
+          this->compile_time_highlights_products->import(nterm);
         }
       }
     } else {
-      this->highlights_products.reset();
-    }
+      this->compile_time_highlights_products.reset();
+    }    
 
     const auto& background_terms = csgrenderer.getBackgroundNodes();
     if (background_terms.size() > 0) {
@@ -1394,9 +1400,11 @@ void MainWindow::compileCSG(std::shared_ptr<const AbstractNode> selected_node)
       LOG("Normalized tree has %1$d elements!",
           (this->root_products ? this->root_products->size() : 0));
 #ifdef USE_LEGACY_RENDERERS
-      this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
-                                                                      this->highlights_products,
-                                                                      this->background_products);
+      auto rdr = std::make_shared<OpenCSGRenderer>(this->root_products,
+                                                   this->background_products);
+      rdr->setHighlights(this->compile_time_highlights_products);
+      this->opencsgRenderer = rdr;
+
 #else
       this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
                                                                 this->highlights_products,
@@ -2426,12 +2434,14 @@ void MainWindow::rightClick(QPoint mouse)
         action->setProperty("column", location.firstColumn());
         action->setProperty("id", QString::fromStdString(std::to_string(step->index())));
 
-        connect(action, SIGNAL(hovered()), this, SLOT(setSelectedObjectPreview()));
+        connect(action, SIGNAL(hovered()), this, SLOT(setSelectedObjectPreviewAction()));
         connect(action, SIGNAL(triggered()), this, SLOT(setCursor()));
       }
     }
 
     tracemenu.exec(this->qglview->mapToGlobal(mouse));
+  }else if(selected_node){
+      setSelectedObjectPreview(nullptr);
   }
 }
 void MainWindow::measureFinished(void)
@@ -2467,11 +2477,46 @@ void MainWindow::setCursor()
   this->activeEditor->setCursorPosition(line - 1, column - 1);
 }
 
+void MainWindow::setSelectedObjectPreview(std::shared_ptr<const AbstractNode> new_selected_node)
+{
+    if(selected_node == new_selected_node)
+        return;
+
+    selected_node = new_selected_node;
+    std::vector<std::shared_ptr<CSGNode>> highlight_terms;
+    CSGTreeEvaluator::selectAndHighlightCSGTree(selected_node,
+                                                *root_node.get(),
+                                                csgRoot, highlight_terms);
+
+    if (highlight_terms.size() > 0) {
+      size_t normalizelimit = 2ul * Preferences::inst()->getValue("advanced/openCSGLimit").toUInt();
+      CSGTreeNormalizer normalizer(normalizelimit);
+      this->highlights_products.reset(new CSGProducts());
+      for (const auto& highlight_term : highlight_terms) {
+        auto nterm = normalizer.normalize(highlight_term);
+        if (nterm) {
+          this->highlights_products->import(nterm);
+        }
+      }
+    } else {
+      this->highlights_products = this->compile_time_highlights_products;
+    }
+
+    auto rdr = dynamic_cast<OpenCSGRenderer*>(this->opencsgRenderer.get());
+    if(rdr)
+        rdr->setHighlights(this->highlights_products);
+
+    viewModePreview();
+
+    // request the update of the 3D view to take into account the change of selection.
+    this->qglview->update();
+}
+
 /**
  * Expects the sender to have properties "file", "line" and "column" defined
  * and id.
  */
-void MainWindow::setSelectedObjectPreview()
+void MainWindow::setSelectedObjectPreviewAction()
 {
   auto *action = qobject_cast<QAction *>(sender());
   if (!action || !action->property("file").isValid() || !action->property("line").isValid() ||
@@ -2487,39 +2532,8 @@ void MainWindow::setSelectedObjectPreview()
   std::deque<std::shared_ptr<const AbstractNode>> path_select;
 
   auto new_selected_node = root_node->getNodeByID(id, path_select);
-  if(selected_node == new_selected_node)
-      return;
-
-  selected_node = new_selected_node;
-  std::vector<std::shared_ptr<CSGNode>> highlight_terms;
-  CSGTreeEvaluator::selectAndHighlightCSGTree(*selected_node.get(),
-                                              *root_node.get(),
-                                              csgRoot, highlight_terms);
-
-  if (highlight_terms.size() > 0) {
-    size_t normalizelimit = 2ul * Preferences::inst()->getValue("advanced/openCSGLimit").toUInt();
-    CSGTreeNormalizer normalizer(normalizelimit);
-    this->highlights_products.reset(new CSGProducts());
-    for (const auto& highlight_term : highlight_terms) {
-      auto nterm = normalizer.normalize(highlight_term);
-      if (nterm) {
-        this->highlights_products->import(nterm);
-      }
-    }
-  } else {
-    this->highlights_products.reset();
-  }
-
-  auto rdr = dynamic_cast<OpenCSGRenderer*>(this->opencsgRenderer.get());
-  if(rdr)
-      rdr->setHighlights(this->highlights_products);
-
-  viewModePreview();
-
-  // request the update of the 3D view to take into account the change of selection.
-  this->qglview->update();
+  setSelectedObjectPreview(new_selected_node);
 }
-
 
 void MainWindow::setLastFocus(QWidget *widget) {
   this->lastFocus = widget;

@@ -64,11 +64,12 @@ public:
 
 OpenCSGRenderer::OpenCSGRenderer(
         std::shared_ptr<CSGProducts> root_products,
-        std::shared_ptr<CSGProducts> highlights_products,
         std::shared_ptr<CSGProducts> background_products)
     : root_products_(std::move(root_products)),
-      highlights_products_(std::move(highlights_products)),
-      background_products_(std::move(background_products)) {}
+      background_products_(std::move(background_products))
+{
+
+}
 
 void OpenCSGRenderer::prepare(bool /*showfaces*/, bool /*showedges*/,
                               const shaderinfo_t *shaderinfo) {
@@ -86,10 +87,11 @@ void OpenCSGRenderer::prepare(bool /*showfaces*/, bool /*showedges*/,
 void OpenCSGRenderer::setHighlights(std::shared_ptr<CSGProducts> hi)
 {
     is_selected.clear();
-    highlights_products_ = hi;
 
-    if(!highlights_products_)
+    if(!hi)
         return;
+
+    highlights_products_ = hi;
 
     for (auto i = 0; i < highlights_products_->products.size(); ++i) {
         const auto &product = highlights_products_->products[i];

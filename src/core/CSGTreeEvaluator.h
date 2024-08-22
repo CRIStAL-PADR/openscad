@@ -33,11 +33,11 @@ public:
 
   std::shared_ptr<CSGNode> buildCSGTree(const AbstractNode& node);
 
-  static void selectAndHighlightCSGTree(const AbstractNode& selectedNodes,
+  static void selectAndHighlightCSGTree(std::shared_ptr<const AbstractNode> selectedNodes,
                                         const AbstractNode& node,
                                         std::shared_ptr<CSGNode> csgnode,
                                         std::vector<std::shared_ptr<CSGNode>>& highlighted);
-  static void selectAndHighlightCSGTree(const AbstractNode& selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag> &newflags, bool isSelected, bool isImpacted);
+  static void selectAndHighlightCSGTree(std::shared_ptr<const AbstractNode> selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag> &newflags, bool isSelected, bool isImpacted);
   static void selectAndHighlightCSGTree(std::shared_ptr<CSGNode>& node, int depth, std::map<int, CSGNode::Flag> &newflags, std::vector<std::shared_ptr<CSGNode>>& highlighted);
 
   [[nodiscard]] const std::shared_ptr<CSGNode>& getRootNode() const {

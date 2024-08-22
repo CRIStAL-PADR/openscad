@@ -275,14 +275,11 @@ void CSGProducts::import(std::shared_ptr<CSGNode> csgnode, OpenSCADOperator type
       }
       if(leaf->isSelected())
       {
-          std::cout << "IS SELECTED...  " << csgnode->dump() << std::endl;
           this->currentlist->emplace_back(leaf, CSGNode::FLAG_HIGHLIGHT_SELECTED);
       }else if (leaf->isImpacted())
       {
-          std::cout << "IS IMPACTED...  " << csgnode->dump() << std::endl;
           this->currentlist->emplace_back(leaf, CSGNode::FLAG_HIGHLIGHT_IMPACTED);
       }else{
-          std::cout << "NOT SELECTED...  " << csgnode->dump() << std::endl;
           this->currentlist->emplace_back(leaf, newflags);
       }
     } else if (auto op = std::dynamic_pointer_cast<CSGOperation>(csgnode)) {

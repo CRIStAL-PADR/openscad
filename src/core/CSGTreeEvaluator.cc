@@ -38,9 +38,6 @@ void CSGTreeEvaluator::selectAndHighlightCSGTree(std::shared_ptr<CSGNode>& node,
                 node->setSelected(true);
             else if (leafnode & CSGNode::FLAG_HIGHLIGHT_IMPACTED)
                 node->setImpacted(true);
-            else
-                node->setHighlight(true);
-
             highlightsNodes.push_back(node);
             hightlight.erase(leaf->index);
         }
@@ -52,25 +49,36 @@ void CSGTreeEvaluator::selectAndHighlightCSGTree(std::shared_ptr<CSGNode>& node,
     }
 }
 
-void CSGTreeEvaluator::selectAndHighlightCSGTree(const AbstractNode& selectedNodes,
+void CSGTreeEvaluator::selectAndHighlightCSGTree(std::shared_ptr<const AbstractNode> selectedNodes,
                                                  const AbstractNode& node, std::shared_ptr<CSGNode> csgnode,
                                                  std::vector<std::shared_ptr<CSGNode>>& highlighted)
 {
     std::map<int, CSGNode::Flag> highlight;
-    selectAndHighlightCSGTree(selectedNodes, node, highlight, false, false);
+
+    // recursively traverse the CSG tree to locate the selectedNode and propagate to its children nodes the
+    // proper selection status
+    if(selectedNodes)
+    {
+        selectAndHighlightCSGTree(selectedNodes, node, highlight, false, false);
+    }
+
+    // starting from the root of the hierarchy and mark the csgnode with the proper flag.
     selectAndHighlightCSGTree(csgnode, 0, highlight, highlighted);
 }
 
-void CSGTreeEvaluator::selectAndHighlightCSGTree(const AbstractNode& selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag>& hightlight, bool isSelected, bool isImpacted)
+void CSGTreeEvaluator::selectAndHighlightCSGTree(std::shared_ptr<const AbstractNode> selectedNodes, const AbstractNode& node, std::map<int, CSGNode::Flag>& hightlight, bool isSelected, bool isImpacted)
 {
-    if( selectedNodes.index() == node.index() )
-        isSelected = true;
-    if (node.modinst == selectedNodes.modinst)
-        isImpacted = true;
+    if(selectedNodes)
+    {
+        if( selectedNodes->index() == node.index() )
+            isSelected = true;
+        if (node.modinst == selectedNodes->modinst)
+            isImpacted = true;
 
-    if(isSelected)
-        hightlight[node.index()] = CSGNode::FLAG_HIGHLIGHT_SELECTED;
-    else if(isImpacted) hightlight[node.index()] = CSGNode::FLAG_HIGHLIGHT_IMPACTED;
+        if(isSelected)
+            hightlight[node.index()] = CSGNode::FLAG_HIGHLIGHT_SELECTED;
+        else if(isImpacted) hightlight[node.index()] = CSGNode::FLAG_HIGHLIGHT_IMPACTED;
+    }
 
     for(auto& child : node.getChildren())
     {

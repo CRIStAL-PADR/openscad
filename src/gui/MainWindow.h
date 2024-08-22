@@ -99,6 +99,7 @@ public:
 private:
   volatile bool isClosing = false;
   void consoleOutputRaw(const QString& msg);
+  void setSelectedObjectPreview(std::shared_ptr<const AbstractNode>);
 
 protected:
   void closeEvent(QCloseEvent *event) override;
@@ -113,7 +114,7 @@ private slots:
   void openCSGSettingsChanged();
   void consoleOutput(const Message& msgObj);
   void setCursor();
-  void setSelectedObjectPreview();
+  void setSelectedObjectPreviewAction();
   void measureFinished();
   void errorLogOutput(const Message& log_msg);
 
@@ -367,6 +368,7 @@ private:
   std::shared_ptr<CSGNode> csgRoot; // Result of the CSGTreeEvaluator
   std::shared_ptr<CSGNode> normalizedRoot; // Normalized CSG tree
   std::shared_ptr<CSGProducts> root_products;
+  std::shared_ptr<CSGProducts> compile_time_highlights_products;
   std::shared_ptr<CSGProducts> highlights_products;
   std::shared_ptr<CSGProducts> background_products;
 
