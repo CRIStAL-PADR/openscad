@@ -15,7 +15,7 @@ fbo_t *fbo_new()
   return fbo;
 }
 
-bool use_ext()
+bool fbo_use_ext()
 {
   // do we need to use the EXT or ARB version?
   if (!hasGLExtension(ARB_framebuffer_object) && hasGLExtension(EXT_framebuffer_object)) {
@@ -32,7 +32,7 @@ bool check_fbo_status()
      See also: http://www.songho.ca/opengl/gl_fbo.html */
   GLenum status;
   auto result = false;
-  if (use_ext()) {
+  if (fbo_use_ext()) {
     IF_GL_CHECK(status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)) return false;
   } else {
     IF_GL_CHECK(status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) return false;
@@ -175,7 +175,7 @@ bool fbo_init(fbo_t *fbo, size_t width, size_t height)
   auto result = false;
   if (hasGLExtension(ARB_framebuffer_object)) {
     result = fbo_arb_init(fbo, width, height);
-  } else if (use_ext()) {
+  } else if (fbo_use_ext()) {
     result = fbo_ext_init(fbo, width, height);
   } else {
     cerr << "Framebuffer Object extension not found\n";
@@ -185,7 +185,7 @@ bool fbo_init(fbo_t *fbo, size_t width, size_t height)
 
 bool fbo_resize(fbo_t *fbo, size_t width, size_t height)
 {
-  if (use_ext()) {
+    if (fbo_use_ext()) {
     glBindRenderbufferEXT(GL_RENDERBUFFER, fbo->depthbuf_id);
     if (hasGLExtension(EXT_packed_depth_stencil)) {
       IF_GL_CHECK(glRenderbufferStorageEXT(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height)) {
@@ -224,17 +224,18 @@ void fbo_delete(fbo_t *fbo)
 GLuint fbo_bind(fbo_t *fbo)
 {
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint *>(&fbo->old_fbo_id));
-  if (use_ext()) {
+  if (fbo_use_ext()) {
     glBindFramebufferEXT(GL_FRAMEBUFFER, fbo->fbo_id);
   } else {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->fbo_id);
   }
+
   return fbo->old_fbo_id;
 }
 
 void fbo_unbind(fbo_t *fbo)
 {
-  if (use_ext()) {
+    if (fbo_use_ext()) {
     glBindFramebufferEXT(GL_FRAMEBUFFER, fbo->old_fbo_id);
   } else {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->old_fbo_id);

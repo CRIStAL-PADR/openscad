@@ -1400,15 +1400,15 @@ void MainWindow::compileCSG(std::shared_ptr<const AbstractNode> selected_node)
       LOG("Normalized tree has %1$d elements!",
           (this->root_products ? this->root_products->size() : 0));
 #ifdef USE_LEGACY_RENDERERS
+      auto rdr = std::make_shared<LegagacyOpenCSGRenderer>(this->root_products,
+                                                   this->background_products);
+      rdr->setHighlights(this->compile_time_highlights_products);
+      this->opencsgRenderer = rdr;
+#else
       auto rdr = std::make_shared<OpenCSGRenderer>(this->root_products,
                                                    this->background_products);
       rdr->setHighlights(this->compile_time_highlights_products);
       this->opencsgRenderer = rdr;
-
-#else
-      this->opencsgRenderer = std::make_shared<OpenCSGRenderer>(this->root_products,
-                                                                this->highlights_products,
-                                                						    this->background_products);
 #endif
     }
 #endif

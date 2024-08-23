@@ -85,7 +85,9 @@ std::unique_ptr<OffscreenView> prepare_preview(Tree& tree, const ViewOptions& op
     renderer = std::make_shared<LegacyOpenCSGRenderer>(csgInfo.root_products, csgInfo.highlights_products, csgInfo.background_products);
 #else
     PRINTD("Initializing OpenCSGRenderer");
-    renderer = std::make_shared<OpenCSGRenderer>(csgInfo.root_products, csgInfo.highlights_products, csgInfo.background_products);
+    auto csgrenderer = std::make_shared<OpenCSGRenderer>(csgInfo.root_products, csgInfo.background_products);
+    csgrenderer->setHighlights(csgInfo.highlights_products);
+    renderer = csgrenderer;
 #endif
 #else
     fprintf(stderr, "This openscad was built without OpenCSG support\n");

@@ -49,17 +49,19 @@ Renderer::Renderer()
   // MATERIAL is set by this object's colorscheme
   // CUTOUT is set by this object's colorscheme
   colormap[ColorMode::HIGHLIGHT] = {255, 81, 81, 128};
-
-  colormap[ColorMode::HIGHLIGHT_SELECTED] = {162, 252, 3, 200};
-  colormap[ColorMode::HIGHLIGHT_IMPACTED] = {128, 128, 128, 200};
-  colormap[ColorMode::HIGHLIGHT_BACKGROUND] = {255, 0, 0, 128};
-
-  colormap[ColorMode::BACKGROUND] = {180, 180, 180, 128};
-  // MATERIAL_EDGES is set by this object's colorscheme
-  // CUTOUT_EDGES is set by this object's colorscheme
   colormap[ColorMode::HIGHLIGHT_EDGES] = {255, 171, 86, 128};
+
+  colormap[ColorMode::HIGHLIGHT_SELECTED] =   {174, 255, 170, 128};
+  colormap[ColorMode::HIGHLIGHT_IMPACTED] = {255, 170, 214, 128};
+  //colormap[ColorMode::EDGE_SELECTED] =   {174, 255, 170, 128};
+  //colormap[ColorMode::EDGE_IMPACTED] = {255, 170, 214, 128};
+
+  colormap[ColorMode::HIGHLIGHT_BACKGROUND] = {180, 180, 180, 128};
+  colormap[ColorMode::BACKGROUND] = {180, 180, 180, 128};
   colormap[ColorMode::BACKGROUND_EDGES] = {150, 150, 150, 128};
 
+  // MATERIAL_EDGES is set by this object's colorscheme
+  // CUTOUT_EDGES is set by this object's colorscheme  
   Renderer::setColorScheme(ColorMap::inst()->defaultColorScheme());
 
   setupShader();

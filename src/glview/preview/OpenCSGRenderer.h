@@ -8,6 +8,7 @@
 #include "CSGNode.h"
 
 #include "VBORenderer.h"
+#include "fbo.h"
 
 class CSGChainObject;
 class CSGProducts;
@@ -92,8 +93,10 @@ public:
       glDeleteBuffers(all_vbos_.size(), all_vbos_.data());
     }
   }
+
   void setHighlights(std::shared_ptr<CSGProducts> hi);
   void prepare(bool showfaces, bool showedges, const shaderinfo_t *shaderinfo = nullptr) override;
+  void resize(int w, int h) override;
   void draw(bool showfaces, bool showedges, const shaderinfo_t *shaderinfo = nullptr) const override;
   void renderImmediate(std::shared_ptr<CSGProducts>) const;
 
@@ -115,4 +118,9 @@ private:
   std::shared_ptr<CSGProducts> background_products_;
 
   std::map<size_t, ColorMode> is_selected;
+
+  unsigned int opencsg_depth_buffer_texture;
+  unsigned int opencsg_buffer;
+  int width {-1};
+  int height {-1};
 };
