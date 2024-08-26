@@ -29,7 +29,7 @@ void main(void) {
   vec4 d = texture2D(ourTexture, screenCoords);
   if( (abs(d.x-gl_FragCoord.z) < 0.0001) && ((d.x - gl_FragCoord.z) >= -0.001))
   {
-    gl_FragColor = mix(vec4(color1.rgb * shading, color1.a), color2, edgeFactor());
+    gl_FragColor = mix(color2, vec4(color1.rgb * shading, color1.a), edgeFactor());
     return;
   }
   discard;
