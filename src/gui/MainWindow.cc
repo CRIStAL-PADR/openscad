@@ -755,7 +755,7 @@ MainWindow::MainWindow(const QStringList& filenames)
   clearCurrentOutput();
 
   for (int i = 1; i < filenames.size(); ++i)
-    tabManager->createTab(filenames[i]);
+    tabManager->open(filenames[i]);
 
   updateExportActions();
 

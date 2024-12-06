@@ -21,9 +21,6 @@ public:
   EditorInterface *editor;
   QSet<EditorInterface *> editorList;
 
-  void createTab(const QString& filename);
-  void openTabFile(const QString& filename);
-  void setTabName(const QString& filename, EditorInterface *edt = nullptr);
   bool refreshDocument(); // returns false if the file could not be opened
   bool shouldClose();
   bool save(EditorInterface *edt);
@@ -48,6 +45,11 @@ private:
   bool save(EditorInterface *edt, const QString& path);
   void saveError(const QIODevice& file, const std::string& msg, const QString& filepath);
   void applyAction(QObject *object, const std::function<void(int, EditorInterface *)>& func);
+
+  void createTab(const QString& filename);
+  void openTabFile(const QString& filename);
+  void setTabName(const QString& filename, EditorInterface *edt = nullptr);
+
 
 private slots:
   void tabSwitched(int);
