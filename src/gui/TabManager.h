@@ -47,7 +47,7 @@ private:
   void applyAction(QObject *object, const std::function<void(int, EditorInterface *)>& func);
 
   void createTab(const QString& filename);
-  void openTabFile(const QString& filename);
+  void openTab(const QString& filename);
   void setTabName(const QString& filename, EditorInterface *edt = nullptr);
 
 

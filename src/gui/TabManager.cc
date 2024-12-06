@@ -156,15 +156,18 @@ void TabManager::openEditor(const QString& filename)
 {
   assert(!filename.isEmpty());
 
-  for (auto edt: editorList) {
-    if (filename == edt->filepath) {
-      tabWidget->setCurrentWidget(tabWidget->indexOf(edt));
-      return;
+  // Search in the list of opened editors if there is one alreday associated
+  // with the given filename. If there is a match, make the corresponding
+  // widget as the current one that is display in the tab and returns.
+  for (auto editor: editorList) {
+    if (filename == editor->filepath) {
+        tabWidget->setCurrentWidget(tabWidget->indexOf(editor));
+        return;
     }
   }
 
   if (editor->filepath.isEmpty() && !editor->isContentModified() && !editor->parameterWidget->isModified()) {
-    openTabFile(filename);
+      openTab(filename);
   } else {
     createTab(filename);
   }
@@ -226,7 +229,7 @@ void TabManager::createTab(const QString& filename)
 
   editorList.insert(editor);
   if (!filename.isEmpty()) {
-    openTabFile(filename);
+      openTab(filename);
   } else {
     setTabName("");
   }
@@ -483,7 +486,7 @@ void TabManager::setTabModified(EditorInterface *edt)
   tabWidget->setTabToolTip(tabWidget->indexOf(edt), fpath);
 }
 
-void TabManager::openTabFile(const QString& filename)
+void TabManager::openTab(const QString& filename)
 {
   par->setCurrentOutput();
   editor->setPlainText("");
