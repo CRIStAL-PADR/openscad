@@ -88,7 +88,11 @@ public slots:
   void actionNew();
   void copy();
   void setContentRenderState(); // since last render
+
+  /// this slot is called when the content of an editor is modified.
+  /// so that visual feedback of the status can be updated.
   void setTabModified(EditorInterface *);
+
   bool saveAll();
   void closeCurrentTab();
   void nextTab();
