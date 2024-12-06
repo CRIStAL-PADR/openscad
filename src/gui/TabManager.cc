@@ -152,7 +152,7 @@ void TabManager::actionNew()
   createTab("");
 }
 
-void TabManager::open(const QString& filename)
+void TabManager::openEditor(const QString& filename)
 {
   assert(!filename.isEmpty());
 
@@ -326,7 +326,7 @@ void TabManager::updateActionUndoState()
 void TabManager::onHyperlinkIndicatorClicked(int val)
 {
   const QString filename = QString::fromStdString(editor->indicatorData[val].path);
-  this->open(filename);
+  this->openEditor(filename);
 }
 
 void TabManager::applyAction(QObject *object, const std::function<void(int, EditorInterface *)>& func)

@@ -755,7 +755,7 @@ MainWindow::MainWindow(const QStringList& filenames)
   clearCurrentOutput();
 
   for (int i = 1; i < filenames.size(); ++i)
-    tabManager->open(filenames[i]);
+      tabManager->openEditor(filenames[i]);
 
   updateExportActions();
 
@@ -778,7 +778,7 @@ void MainWindow::openFileFromPath(const QString& path, int line)
 {
   if (editorDock->isVisible()) {
     activeEditor->setFocus();
-    if (!path.isEmpty()) tabManager->open(path);
+    if (!path.isEmpty()) tabManager->openEditor(path);
     activeEditor->setFocus();
     activeEditor->setCursorPosition(line, 0);
   }
@@ -1457,7 +1457,7 @@ void MainWindow::actionOpen()
     if (!i.exists()) {
       return;
     }
-    tabManager->open(i.filePath());
+    tabManager->openEditor(i.filePath());
   }
 }
 
@@ -1480,7 +1480,7 @@ void MainWindow::actionOpenWindow()
 void MainWindow::actionOpenRecent()
 {
   auto action = qobject_cast<QAction *>(sender());
-  tabManager->open(action->data().toString());
+  tabManager->openEditor(action->data().toString());
 }
 
 void MainWindow::clearRecentFiles()
@@ -1534,7 +1534,7 @@ void MainWindow::actionOpenExample()
   const auto action = qobject_cast<QAction *>(sender());
   if (action) {
     const auto& path = action->data().toString();
-    tabManager->open(path);
+    tabManager->openEditor(path);
   }
 }
 
@@ -2500,7 +2500,7 @@ void MainWindow::setSelection(int index)
   // Unsaved files do have the pwd as current path, therefore we will not open a new
   // tab on click
   if (!fs::is_directory(fs::path(file))) {
-    tabManager->open(QString::fromStdString(file));
+      tabManager->openEditor(QString::fromStdString(file));
   }
 
   // removes all previsly configure selection indicators.
@@ -3544,7 +3544,7 @@ void MainWindow::handleFileDrop(const QUrl& url)
   const auto suffix = fileInfo.suffix().toLower();
   const auto cmd = knownFileExtensions[suffix];
   if (cmd.isEmpty()) {
-    tabManager->open(fileName);
+      tabManager->openEditor(fileName);
   } else {
     activeEditor->insert(cmd.arg(fileName));
   }

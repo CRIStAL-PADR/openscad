@@ -53,7 +53,7 @@ void OpenSCADApp::requestOpenFile(const QString& filename)
   for (auto win : this->windowManager.getWindows()) {
     // if we have an empty open window, use that one
     if (win->isEmpty()) {
-      win->tabManager->open(filename);
+        win->tabManager->openEditor(filename);
       return;
     }
   }
