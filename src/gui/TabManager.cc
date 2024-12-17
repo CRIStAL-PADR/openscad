@@ -176,6 +176,7 @@ void TabManager::openEditor(const QString& filename)
 void TabManager::createTab(const QString& filename)
 {
   assert(par != nullptr);
+  assert(!filename.isEmpty());
 
   editor = new ScintillaEditor(tabWidget);
   Preferences::create(editor->colorSchemes()); // needs to be done only once, however handled
@@ -228,11 +229,7 @@ void TabManager::createTab(const QString& filename)
   }
 
   editorList.insert(editor);
-  if (!filename.isEmpty()) {
-      openTab(filename);
-  } else {
-    setTabName("");
-  }
+  openTab(filename);
   par->updateRecentFileActions();
 }
 
