@@ -18,8 +18,6 @@ public:
   TabManager(MainWindow *o, const QString& filename);
   QWidget *getTabHeader();
   QWidget *getTabContent();
-  EditorInterface *editor;
-  QSet<EditorInterface *> editorList;
 
   bool refreshDocument(); // returns false if the file could not be opened
   bool shouldClose();
@@ -40,6 +38,8 @@ signals:
 private:
   MainWindow *par;
   TabWidget *tabWidget;
+  EditorInterface *editor;
+  QSet<EditorInterface *> editorList;
 
   bool maybeSave(int);
   bool save(EditorInterface *edt, const QString& path);
