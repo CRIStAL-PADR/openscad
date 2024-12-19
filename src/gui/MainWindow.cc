@@ -345,9 +345,21 @@ MainWindow::MainWindow(const QStringList& filenames)
   // Any code dependent on Preferences must come after the TabManager instantiation
   tabManager = new TabManager(this, filenames.isEmpty() ? QString() : filenames[0]);
   connect(tabManager, SIGNAL(tabCountChanged(int)), this, SLOT(setTabToolBarVisible(int)));
-  this->setTabToolBarVisible(tabManager->count());
-  tabToolBarContents->layout()->addWidget(tabManager->getTabHeader());
-  editorDockContents->layout()->addWidget(tabManager->getTabContent());
+
+  // The current content of the container is initialized with a mocked widget so
+  // there is a good looking preview in qdesigner. The mock need to be removed
+  // before adding the real version of the header coming from the tabManager.
+  //editorContentHeaderContainer->layout()->removeWidget(exampleHeaderContent);
+  //delete exampleHeaderContent;
+  //editorContentHeaderContainer->layout()->addWidget(tabManager->getTabHeader());
+
+  // The current content of the container is initialized with a mocked widget so
+  // there is a good looking preview in qdesigner. The mock need to be removed
+  // before adding the real version of the text container that is a QScintillaEditor
+  // coming from the tabManager.
+  editorContentTabWidgetContainer->layout()->removeWidget(exampleTabWidget);
+  delete exampleTabWidget;
+  editorContentTabWidgetContainer->layout()->addWidget(tabManager->getWidget());
 
   connect(Preferences::inst(), SIGNAL(consoleFontChanged(const QString&,uint)), this->console, SLOT(setFont(const QString&,uint)));
 
@@ -599,7 +611,7 @@ MainWindow::MainWindow(const QStringList& filenames)
   connect(this->findTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(selectFindType(int)));
   connect(this->findInputField, SIGNAL(textChanged(QString)), this, SLOT(findString(QString)));
   connect(this->findInputField, SIGNAL(returnPressed()), this->findNextButton, SLOT(animateClick()));
-  find_panel->installEventFilter(this);
+  editorSearchPanel->installEventFilter(this);
   if (QApplication::clipboard()->supportsFindBuffer()) {
     connect(this->findInputField, SIGNAL(textChanged(QString)), this, SLOT(updateFindBuffer(QString)));
     connect(QApplication::clipboard(), SIGNAL(findBufferChanged()), this, SLOT(findBufferChanged()));
@@ -615,7 +627,7 @@ MainWindow::MainWindow(const QStringList& filenames)
   connect(this->replaceAllButton, SIGNAL(clicked()), this, SLOT(replaceAll()));
   connect(this->replaceInputField, SIGNAL(returnPressed()), this->replaceButton, SLOT(animateClick()));
   addKeyboardShortCut(this->viewerToolBar->actions());
-  addKeyboardShortCut(this->editortoolbar->actions());
+  addKeyboardShortCut(this->editorToolBar->actions());
 
   Preferences *instance = Preferences::inst();
 
@@ -764,8 +776,8 @@ MainWindow::MainWindow(const QStringList& filenames)
 }
 
 void MainWindow::updateExportActions() {
-  removeExportActions(editortoolbar, this->designAction3DPrint);
-  addExportActions(this, editortoolbar, this->designAction3DPrint);
+  removeExportActions(editorToolBar, this->designAction3DPrint);
+  addExportActions(this, editorToolBar, this->designAction3DPrint);
 
   //handle the hide/show of export action in view toolbar according to the visibility of editor dock
   removeExportActions(viewerToolBar, this->viewActionViewAll);
@@ -1065,11 +1077,11 @@ void MainWindow::updateRecentFiles(const QString& FileSavedOrOpened)
   }
 }
 
-void MainWindow::setTabToolBarVisible(int count)
-{
-  tabCount = count;
-  tabToolBar->setVisible((tabCount > 1) && editorDock->isVisible());
-}
+//void MainWindow::setTabToolBarVisible(int count)
+//{
+//  //editorContentHeaderContainer->setVisible(true && editorDock->isVisible());
+//  //std::cout << "Show tool bar " << ((count > 1) && editorDock->isVisible()) << std::endl;
+//}
 
 /*!
    compiles the design. Calls compileDone() if anything was compiled
@@ -1681,7 +1693,7 @@ QList<double> MainWindow::getRotation() const
 
 void MainWindow::hideFind()
 {
-  find_panel->hide();
+  editorSearchPanel->hide();
   activeEditor->findState = TabManager::FIND_HIDDEN;
   editActionFindNext->setEnabled(false);
   editActionFindPrevious->setEnabled(false);
@@ -1698,7 +1710,7 @@ void MainWindow::showFind()
   replaceButton->hide();
   replaceAllButton->hide();
   //replaceLabel->setVisible(false);
-  find_panel->show();
+  editorSearchPanel->show();
   activeEditor->findState = TabManager::FIND_VISIBLE;
   editActionFindNext->setEnabled(true);
   editActionFindPrevious->setEnabled(true);
@@ -1725,7 +1737,7 @@ void MainWindow::showFindAndReplace()
   replaceButton->show();
   replaceAllButton->show();
   //replaceLabel->setVisible(true);
-  find_panel->show();
+  editorSearchPanel->show();
   activeEditor->findState = TabManager::FIND_REPLACE_VISIBLE;
   editActionFindNext->setEnabled(true);
   editActionFindPrevious->setEnabled(true);
@@ -1819,7 +1831,7 @@ bool MainWindow::event(QEvent *event) {
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-  if (obj == find_panel) {
+  if (obj == editorSearchPanel) {
     if (event->type() == QEvent::KeyPress) {
       auto keyEvent = static_cast<QKeyEvent *>(event);
       if (keyEvent->key() == Qt::Key_Escape) {
@@ -3121,7 +3133,7 @@ void MainWindow::viewAll()
 void MainWindow::on_editorDock_visibilityChanged(bool)
 {
   changedTopLevelEditor(editorDock->isFloating());
-  tabToolBar->setVisible((tabCount > 1) && editorDock->isVisible());
+  //editorContentHeaderContainer->setVisible((tabManager->count() > 1) && editorDock->isVisible());
   updateExportActions();
 }
 
@@ -3163,14 +3175,15 @@ void MainWindow::changedTopLevelEditor(bool topLevel)
 void MainWindow::editorTopLevelChanged(bool topLevel)
 {
   setDockWidgetTitle(editorDock, QString(_("Editor")), topLevel);
+  std::cout << "editorTopLevelChanger... " << topLevel << std::endl;
   if (topLevel) {
-    this->removeToolBar(tabToolBar);
-    ((QVBoxLayout *)editorDockContents->layout())->insertWidget(0, tabToolBar);
+    //this->removeToolBar(tabToolBar);
+    //((QVBoxLayout *)editorDockContents->layout())->insertWidget(0, tabToolBar);
   } else {
-    editorDockContents->layout()->removeWidget(tabToolBar);
-    this->addToolBar(tabToolBar);
+    //editorDockContents->layout()->removeWidget(tabToolBar);
+    //this->addToolBar(tabToolBar);
   }
-  tabToolBar->setVisible((tabCount > 1) && editorDock->isVisible());
+  //tabToolBar->setVisible((tabManager->count() > 1) && editorDock->isVisible());
 }
 
 void MainWindow::changedTopLevelConsole(bool topLevel)
@@ -3272,9 +3285,9 @@ void MainWindow::hideEditorToolbar()
   settings.setValue("view/hideEditorToolbar", shouldHide);
 
   if (shouldHide) {
-    editortoolbar->hide();
+    editorToolBar->hide();
   } else {
-    editortoolbar->show();
+    editorToolBar->show();
   }
 }
 

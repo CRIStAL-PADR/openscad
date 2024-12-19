@@ -33,8 +33,6 @@ TabManager::TabManager(MainWindow *o, const QString& filename)
   par = o;
 
   tabWidget = new TabWidget();
-  tabWidget->setAutoHide(true);
-  tabWidget->setExpanding(false);
   tabWidget->setTabsClosable(true);
   tabWidget->setMovable(true);
   tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -42,7 +40,8 @@ TabManager::TabManager(MainWindow *o, const QString& filename)
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTabRequested(int)));
   connect(tabWidget, SIGNAL(tabCountChanged(int)), this, SIGNAL(tabCountChanged(int)));
   connect(tabWidget, SIGNAL(middleMouseClicked(int)), this, SLOT(middleMouseClicked(int)));
-  connect(tabWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showTabHeaderContextMenu(const QPoint&)));
+  connect(tabWidget, &TabWidget::customContextMenuRequested, this,
+          &TabManager::showTabHeaderContextMenu);
 
   createTab(filename);
 
@@ -69,16 +68,10 @@ TabManager::TabManager(MainWindow *o, const QString& filename)
   connect(par->editActionJumpToNextError, SIGNAL(triggered()), this, SLOT(jumpToNextError()));
 }
 
-QWidget *TabManager::getTabHeader()
+QWidget *TabManager::getWidget()
 {
   assert(tabWidget != nullptr);
   return tabWidget;
-}
-
-QWidget *TabManager::getTabContent()
-{
-  assert(tabWidget != nullptr);
-  return tabWidget->getContentWidget();
 }
 
 void TabManager::tabSwitched(int x)
@@ -94,16 +87,17 @@ void TabManager::tabSwitched(int x)
   par->parameterTopLevelChanged(par->parameterDock->isFloating());
   par->setWindowTitle(tabWidget->tabText(x).replace("&&", "&"));
 
-  for (int idx = 0; idx < tabWidget->count(); ++idx) {
-    QWidget *button = tabWidget->tabButton(idx, QTabBar::RightSide);
-    if (button) {
-      button->setVisible(idx == x);
-    }
-  }
+//  for (int index = 0; index < tabWidget->count(); ++index) {
+//    QWidget *button = tabWidget->tabButton(index, QTabBar::RightSide);
+//    if (button) {
+//      button->setVisible(index == x);
+//    }
+//  }
 }
 
 void TabManager::middleMouseClicked(int x)
 {
+    std::cout << "MIDDLE MOUSE CLICKED... " << std::endl;
   if (x < 0) {
     createTab("");
   } else {
@@ -119,7 +113,6 @@ void TabManager::closeTabRequested(int x)
   auto *temp = (EditorInterface *)tabWidget->widget(x);
   editorList.remove(temp);
   tabWidget->removeTab(x);
-  tabWidget->fireTabCountChanged();
 
   delete temp->parameterWidget;
   delete temp;
@@ -161,7 +154,7 @@ void TabManager::openEditor(const QString& filename)
   // widget as the current one that is display in the tab and returns.
   for (auto editor: editorList) {
     if (filename == editor->filepath) {
-        tabWidget->setCurrentWidget(tabWidget->indexOf(editor));
+        tabWidget->setCurrentWidget(editor);
         return;
     }
   }
@@ -225,7 +218,7 @@ void TabManager::createTab(const QString& filename)
 
   int idx = tabWidget->addTab(editor, _("Untitled.scad"));
   if (!editorList.isEmpty()) {
-    tabWidget->setCurrentWidget(idx); // to prevent emitting of currentTabChanged signal twice for first tab
+    tabWidget->setCurrentWidget(editor); // to prevent emitting of currentTabChanged signal twice for first tab
   }
 
   editorList.insert(editor);
@@ -398,35 +391,34 @@ void TabManager::showContextMenuEvent(const QPoint& pos)
   delete menu;
 }
 
-void TabManager::showTabHeaderContextMenu(const QPoint& pos)
+void TabManager::showTabHeaderContextMenu(const QPoint& point)
 {
-  int idx = tabWidget->tabAt(pos);
-  if (idx < 0) {
+  int index = tabWidget->tabBar()->tabAt(point);
+  if (index < 0)
     return;
-  }
 
-  auto *edt = (EditorInterface *)tabWidget->widget(idx);
+  auto *edt = (EditorInterface *)tabWidget->widget(index);
 
   auto *copyFileNameAction = new QAction(tabWidget);
-  copyFileNameAction->setData(idx);
+  copyFileNameAction->setData(index);
   copyFileNameAction->setEnabled(!edt->filepath.isEmpty());
   copyFileNameAction->setText(_("Copy file name"));
   connect(copyFileNameAction, SIGNAL(triggered()), SLOT(copyFileName()));
 
   auto *copyFilePathAction = new QAction(tabWidget);
-  copyFilePathAction->setData(idx);
+  copyFilePathAction->setData(index);
   copyFilePathAction->setEnabled(!edt->filepath.isEmpty());
   copyFilePathAction->setText(_("Copy full path"));
   connect(copyFilePathAction, SIGNAL(triggered()), SLOT(copyFilePath()));
 
   auto *openFolderAction = new QAction(tabWidget);
-  openFolderAction->setData(idx);
+  openFolderAction->setData(index);
   openFolderAction->setEnabled(!edt->filepath.isEmpty());
   openFolderAction->setText(_("Open folder"));
   connect(openFolderAction, SIGNAL(triggered()), SLOT(openFolder()));
 
   auto *closeAction = new QAction(tabWidget);
-  closeAction->setData(idx);
+  closeAction->setData(index);
   closeAction->setText(_("Close Tab"));
   connect(closeAction, SIGNAL(triggered()), SLOT(closeTab()));
 
@@ -438,9 +430,8 @@ void TabManager::showTabHeaderContextMenu(const QPoint& pos)
   menu.addSeparator();
   menu.addAction(closeAction);
 
-  int x1, y1, x2, y2;
-  tabWidget->tabRect(idx).getCoords(&x1, &y1, &x2, &y2);
-  menu.exec(tabWidget->mapToGlobal(QPoint(x1, y2)));
+  QPoint globalCursorPos = QCursor::pos();
+  menu.exec(globalCursorPos);
 }
 
 void TabManager::setContentRenderState() //since last render

@@ -127,7 +127,6 @@ protected:
   void closeEvent(QCloseEvent *event) override;
 
 private slots:
-  void setTabToolBarVisible(int);
   void updateUndockMode(bool undockMode);
   void updateReorderMode(bool reorderMode);
   void setFont(const QString& family, uint size);
@@ -402,7 +401,7 @@ private:
   std::unordered_map<std::string, QString> export_paths; // for each file type, where it was exported to last
   QString exportPath(const char *suffix); // look up the last export path and generate one if not found
   int last_parser_error_pos{-1}; // last highlighted error position
-  int tabCount = 0;
+  //int tabCount = 0;
   paperSizes sizeString2Enum(const QString& current);
   paperOrientations orientationsString2Enum(const QString& current);
 

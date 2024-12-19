@@ -16,8 +16,8 @@ class TabManager : public QObject
 
 public:
   TabManager(MainWindow *o, const QString& filename);
-  QWidget *getTabHeader();
-  QWidget *getTabContent();
+
+  QWidget *getWidget(); // The TabManager is associated with a widget that is controlling.
 
   bool refreshDocument(); // returns false if the file could not be opened
   bool shouldClose();
@@ -77,7 +77,7 @@ private slots:
   void openFolder();
   void closeTab();
   void showContextMenuEvent(const QPoint&);
-  void showTabHeaderContextMenu(const QPoint&);
+  void showTabHeaderContextMenu(const QPoint &point);
 
   void stopAnimation();
   void updateFindState();
