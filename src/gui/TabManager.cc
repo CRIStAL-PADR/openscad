@@ -36,17 +36,14 @@ TabManager::TabManager(MainWindow *o, const QString& filename)
   tabWidget->setTabsClosable(true);
   tabWidget->setMovable(true);
   tabWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(tabWidget, SIGNAL(currentTabChanged(int)), this, SLOT(tabSwitched(int)));
   connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTabRequested(int)));
-  connect(tabWidget, SIGNAL(tabCountChanged(int)), this, SIGNAL(tabCountChanged(int)));
-  connect(tabWidget, SIGNAL(middleMouseClicked(int)), this, SLOT(middleMouseClicked(int)));
   connect(tabWidget, &TabWidget::customContextMenuRequested, this,
           &TabManager::showTabHeaderContextMenu);
 
   createTab(filename);
 
-  connect(tabWidget, SIGNAL(currentTabChanged(int)), this, SLOT(stopAnimation()));
-  connect(tabWidget, SIGNAL(currentTabChanged(int)), this, SLOT(updateFindState()));
+  connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabSwitched(int)));
+  connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(updateFindState()));
 
   connect(par, SIGNAL(highlightError(int)), this, SLOT(highlightError(int)));
   connect(par, SIGNAL(unhighlightLastError()), this, SLOT(unhighlightLastError()));
@@ -74,37 +71,6 @@ QWidget *TabManager::getWidget()
   return tabWidget;
 }
 
-void TabManager::tabSwitched(int x)
-{
-  assert(tabWidget != nullptr);
-  editor = (EditorInterface *)tabWidget->widget(x);
-  par->activeEditor = editor;
-  par->parameterDock->setWidget(editor->parameterWidget);
-
-  par->editActionUndo->setEnabled(editor->canUndo());
-  par->changedTopLevelEditor(par->editorDock->isFloating());
-  par->changedTopLevelConsole(par->consoleDock->isFloating());
-  par->parameterTopLevelChanged(par->parameterDock->isFloating());
-  par->setWindowTitle(tabWidget->tabText(x).replace("&&", "&"));
-
-//  for (int index = 0; index < tabWidget->count(); ++index) {
-//    QWidget *button = tabWidget->tabButton(index, QTabBar::RightSide);
-//    if (button) {
-//      button->setVisible(index == x);
-//    }
-//  }
-}
-
-void TabManager::middleMouseClicked(int x)
-{
-    std::cout << "MIDDLE MOUSE CLICKED... " << std::endl;
-  if (x < 0) {
-    createTab("");
-  } else {
-    closeTabRequested(x);
-  }
-}
-
 void TabManager::closeTabRequested(int x)
 {
   assert(tabWidget != nullptr);
@@ -114,6 +80,12 @@ void TabManager::closeTabRequested(int x)
   editorList.remove(temp);
   tabWidget->removeTab(x);
 
+  if(tabWidget->count()==0)
+    createTab("Unnamed.scad");
+
+  auto *focusedEditor = dynamic_cast<EditorInterface*>(tabWidget->widget(x));
+  emit closingEditor(temp, focusedEditor);
+
   delete temp->parameterWidget;
   delete temp;
 }
@@ -122,6 +94,7 @@ void TabManager::closeCurrentTab()
 {
   assert(tabWidget != nullptr);
 
+  std::cout << "CLOSE CURRENT TAB" << std::endl;
   /* Close tab or close the current window if only one tab is open. */
   if (tabWidget->count() > 1) this->closeTabRequested(tabWidget->currentIndex());
   else par->close();
@@ -143,6 +116,14 @@ void TabManager::actionNew()
 {
   if (par->windowActionHideEditor->isChecked()) par->windowActionHideEditor->trigger(); //if editor hidden, make it visible
   createTab("");
+}
+
+EditorInterface* TabManager::getCurrentEditor()
+{
+    auto editor = dynamic_cast<EditorInterface*>(tabWidget->currentWidget());
+    if(!editor)
+        throw std::runtime_error("Invalid editor");
+    return editor;
 }
 
 void TabManager::openEditor(const QString& filename)
@@ -440,12 +421,6 @@ void TabManager::setContentRenderState() //since last render
   editor->parameterWidget->setEnabled(false);
 }
 
-void TabManager::stopAnimation()
-{
-  par->animateWidget->pauseAnimation();
-  par->animateWidget->e_tval->setText("");
-}
-
 void TabManager::updateFindState()
 {
   if (editor->findState == TabManager::FIND_REPLACE_VISIBLE) par->showFindAndReplace();
@@ -470,9 +445,23 @@ void TabManager::setTabModified(EditorInterface *edt)
   if (edt == editor) {
     par->setWindowTitle(fname);
   }
+
   tabWidget->setTabText(tabWidget->indexOf(edt), fname.replace("&", "&&"));
   tabWidget->setTabToolTip(tabWidget->indexOf(edt), fpath);
 }
+
+void TabManager::setPreviewedEditorChanger(EditorInterface* newEditor)
+{
+    std::cout << "setPreviewEditor " << tabWidget->indexOf(newEditor) << std::endl;
+   // set the color of un-previewed editors to middle gray
+   for(size_t indice = 0; indice < tabWidget->count();++indice)
+   {
+       tabWidget->tabBar()->setTabTextColor(indice, QColor::fromRgbF(0.5,0.5,0.5,1.0));
+   }
+   // set the currently preview editor in dark
+   tabWidget->tabBar()->setTabTextColor(tabWidget->indexOf(newEditor), QColor::fromRgbF(0.1,0.1,0.1,1.0));
+}
+
 
 void TabManager::openTab(const QString& filename)
 {
@@ -493,21 +482,6 @@ void TabManager::openTab(const QString& filename)
   }
   par->fileChangedOnDisk(); // force cached autoReloadId to update
   bool opened = refreshDocument();
-
-  if (opened) { // only try to parse if the file opened
-    par->hideCurrentOutput(); // Initial parse for customizer, hide any errors to avoid duplication
-    try {
-      par->parseTopLevelDocument();
-    } catch (const HardWarningException&) {
-      par->exceptionCleanup();
-    } catch (const std::exception& ex) {
-      par->UnknownExceptionCleanup(ex.what());
-    } catch (...) {
-      par->UnknownExceptionCleanup();
-    }
-    par->last_compiled_doc = ""; // undo the damage so F4 works
-    par->clearCurrentOutput();
-  }
 }
 
 void TabManager::setTabName(const QString& filename, EditorInterface *edt)

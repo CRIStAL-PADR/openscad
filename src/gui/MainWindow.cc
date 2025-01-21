@@ -344,7 +344,6 @@ MainWindow::MainWindow(const QStringList& filenames)
   // Preferences initialization happens on first tab creation, and depends on colorschemes from editor.
   // Any code dependent on Preferences must come after the TabManager instantiation
   tabManager = new TabManager(this, filenames.isEmpty() ? QString() : filenames[0]);
-  connect(tabManager, SIGNAL(tabCountChanged(int)), this, SLOT(setTabToolBarVisible(int)));
 
   // The current content of the container is initialized with a mocked widget so
   // there is a good looking preview in qdesigner. The mock need to be removed
@@ -360,6 +359,8 @@ MainWindow::MainWindow(const QStringList& filenames)
   editorContentTabWidgetContainer->layout()->removeWidget(exampleTabWidget);
   delete exampleTabWidget;
   editorContentTabWidgetContainer->layout()->addWidget(tabManager->getWidget());
+
+  connect(tabManager, &TabManager::closingEditor, this, &MainWindow::onClosingEditor);
 
   connect(Preferences::inst(), SIGNAL(consoleFontChanged(const QString&,uint)), this->console, SLOT(setFont(const QString&,uint)));
 
@@ -772,7 +773,12 @@ MainWindow::MainWindow(const QStringList& filenames)
   updateExportActions();
 
   this->selector = std::make_unique<MouseSelector>(this->qglview);
+
+  // The the current editor as the active one in tabManager.
   activeEditor->setFocus();
+
+  // the active editor has changed, so we resynchronize the preview with it.
+  actionRenderPreview();
 }
 
 void MainWindow::updateExportActions() {
@@ -788,12 +794,21 @@ void MainWindow::updateExportActions() {
 
 void MainWindow::openFileFromPath(const QString& path, int line)
 {
+  std::cout << "open file from path " << std::endl;
   if (editorDock->isVisible()) {
     activeEditor->setFocus();
     if (!path.isEmpty()) tabManager->openEditor(path);
     activeEditor->setFocus();
     activeEditor->setCursorPosition(line, 0);
   }
+}
+
+void MainWindow::onClosingEditor(EditorInterface* editor,
+                                 EditorInterface* newEditorUnderFocus){
+    // editor will be closed and the associated memory pointer release
+    // every componing holding it should stop using it and act appropriately
+    activeEditor = newEditorUnderFocus;
+    actionRenderPreview();
 }
 
 bool MainWindow::isLightTheme(){
@@ -1026,6 +1041,29 @@ MainWindow::~MainWindow()
   }
 }
 
+// stops animation.
+void MainWindow::stopAnimation()
+{
+    animateWidget->pauseAnimation();
+    animateWidget->e_tval->setText("");
+}
+
+void MainWindow::editorSwitched(EditorInterface* editor)
+{
+    assert(editor != nullptr);
+    if(editor == nullptr)
+        return;
+
+    activeEditor = editor;
+    parameterDock->setWidget(editor->parameterWidget);
+    editActionUndo->setEnabled(editor->canUndo());
+    changedTopLevelEditor(editorDock->isFloating());
+    changedTopLevelConsole(consoleDock->isFloating());
+    parameterTopLevelChanged(parameterDock->isFloating());
+    setWindowTitle(editor->filepath.replace("&&", "&"));
+    stopAnimation();
+}
+
 void MainWindow::showProgress()
 {
   updateStatusBar(qobject_cast<ProgressWidget *>(sender()));
@@ -1077,12 +1115,6 @@ void MainWindow::updateRecentFiles(const QString& FileSavedOrOpened)
   }
 }
 
-//void MainWindow::setTabToolBarVisible(int count)
-//{
-//  //editorContentHeaderContainer->setVisible(true && editorDock->isVisible());
-//  //std::cout << "Show tool bar " << ((count > 1) && editorDock->isVisible()) << std::endl;
-//}
-
 /*!
    compiles the design. Calls compileDone() if anything was compiled
  */
@@ -1116,6 +1148,7 @@ void MainWindow::compile(bool reload, bool forcedone)
       // If the file hasn't changed, we might still need to compile it
       // if we haven't yet compiled the current text.
       else {
+          std::cout << "YO LO" << std::endl;
         auto current_doc = activeEditor->toPlainText();
         if (current_doc.size() && last_compiled_doc.size() == 0) {
           shouldcompiletoplevel = true;
@@ -1132,6 +1165,9 @@ void MainWindow::compile(bool reload, bool forcedone)
         shouldcompiletoplevel = true;
       }
     }
+
+    std::cout << "========== SHOULD COMPILE " << shouldcompiletoplevel << std::endl;
+
     // Parsing and dependency handling must run to completion even with stop on errors to prevent auto
     // reload picking up where it left off, thwarting the stop, so we turn off exceptions in PRINT.
     no_exceptions_for_warnings();
@@ -1243,6 +1279,7 @@ void MainWindow::compileDone(bool didchange)
   try{
     const char *callslot;
     if (didchange) {
+        std::cout << "DID CHANGE ? " << std::endl;
       instantiateRoot();
       updateCompileResult();
       callslot = afterCompileSlot;
@@ -1287,6 +1324,9 @@ void MainWindow::instantiateRoot()
 
   std::filesystem::path doc(activeEditor->filepath.toStdString());
   this->tree.setDocumentPath(doc.parent_path().string());
+
+  std::cout << "Instantiate ROOT " << doc.string() << std::endl;
+  tabManager->setPreviewedEditorChanger(activeEditor);
 
   if (this->root_file) {
     // Evaluate CSG tree
@@ -1471,6 +1511,9 @@ void MainWindow::actionOpen()
     }
     tabManager->openEditor(i.filePath());
   }
+
+  // the editor has changed, so we resynchronize the preview with it.
+  actionRenderPreview();
 }
 
 void MainWindow::actionNewWindow()
@@ -1492,7 +1535,14 @@ void MainWindow::actionOpenWindow()
 void MainWindow::actionOpenRecent()
 {
   auto action = qobject_cast<QAction *>(sender());
+  std::cout << "TAB MANAGER" << action->data().toString().toStdString() << std::endl;
+
+  // opens the editor corresponding to the provided path and puts it on focus
+  //   if the editor is alread opened, put it on focus.
   tabManager->openEditor(action->data().toString());
+
+  // the editor has changed, so we resynchronize the preview with it.
+  actionRenderPreview();
 }
 
 void MainWindow::clearRecentFiles()
@@ -1937,6 +1987,7 @@ bool MainWindow::trust_python_file(const std::string& file,  const std::string& 
 
 void MainWindow::parseTopLevelDocument()
 {
+    std::cout << "parse top level " << std::endl;
   resetSuppressedMessages();
 
   this->last_compiled_doc = activeEditor->toPlainText();
@@ -2065,9 +2116,15 @@ void MainWindow::prepareCompile(const char *afterCompileSlot, bool procevents, b
   this->is_preview = preview;
 }
 
+/**
+ *  This method does two things:
+ *     - get the currently visible editor out of the TabManager and use it as the MainWindow tabManager
+ *     - refresh, if needed the preview using the active MainWindow activeEditor
+ */
 void MainWindow::actionRenderPreview()
 {
-  static bool preview_requested;
+  static bool preview_requested; 
+  activeEditor = tabManager->getCurrentEditor();
 
   preview_requested = true;
   if (GuiLocker::isLocked()) return;
@@ -2509,14 +2566,14 @@ void MainWindow::setSelection(int index)
   auto line = location.firstLine();
   auto column = location.firstColumn();
 
+  // removes all previsly configure selection indicators.
+  clearAllSelectionIndicators();
+
   // Unsaved files do have the pwd as current path, therefore we will not open a new
   // tab on click
   if (!fs::is_directory(fs::path(file))) {
       tabManager->openEditor(QString::fromStdString(file));
   }
-
-  // removes all previsly configure selection indicators.
-  clearAllSelectionIndicators();
 
   std::vector<std::shared_ptr<const AbstractNode>> nodesSameModule{};
   findNodesWithSameMod(root_node, selected_node, nodesSameModule);
@@ -3175,7 +3232,7 @@ void MainWindow::changedTopLevelEditor(bool topLevel)
 void MainWindow::editorTopLevelChanged(bool topLevel)
 {
   setDockWidgetTitle(editorDock, QString(_("Editor")), topLevel);
-  std::cout << "editorTopLevelChanger... " << topLevel << std::endl;
+  std::cout << "editorTopLevelChanger... " << activeEditor << std::endl;
   if (topLevel) {
     //this->removeToolBar(tabToolBar);
     //((QVBoxLayout *)editorDockContents->layout())->insertWidget(0, tabToolBar);

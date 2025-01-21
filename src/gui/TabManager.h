@@ -25,15 +25,13 @@ public:
   bool saveAs(EditorInterface *edt);
   bool saveACopy(EditorInterface *edt);
   void openEditor(const QString& filename);
+  EditorInterface* getCurrentEditor();
   size_t count();
 
 public:
   static constexpr const int FIND_HIDDEN = 0;
   static constexpr const int FIND_VISIBLE = 1;
   static constexpr const int FIND_REPLACE_VISIBLE = 2;
-
-signals:
-  void tabCountChanged(int);
 
 private:
   MainWindow *par;
@@ -52,9 +50,8 @@ private:
 
 
 private slots:
-  void tabSwitched(int);
+  //void tabSwitched(int);
   void closeTabRequested(int);
-  void middleMouseClicked(int);
 
 private slots:
   void highlightError(int);
@@ -79,7 +76,6 @@ private slots:
   void showContextMenuEvent(const QPoint&);
   void showTabHeaderContextMenu(const QPoint &point);
 
-  void stopAnimation();
   void updateFindState();
 
   void onHyperlinkIndicatorClicked(int pos);
@@ -92,10 +88,18 @@ public slots:
   /// this slot is called when the content of an editor is modified.
   /// so that visual feedback of the status can be updated.
   void setTabModified(EditorInterface *);
+  void setPreviewedEditorChanger(EditorInterface* );
 
   bool saveAll();
   void closeCurrentTab();
   void nextTab();
   void prevTab();
   void setFocus();
+
+signals:
+  /// this signals is emitted everytime an editor is about to be close and the memory pointer
+  /// deleted. Any third party object using the tab manager and storing one of the EditorInterface
+  /// pointer should, connect to this signals to be notified and release it.
+  /// editorAboutToFocus can be a nullptr in case there is no more editor.
+  void closingEditor(EditorInterface* editorAboutToClose, EditorInterface* editorAboutToFocus);
 };

@@ -178,7 +178,11 @@ private:
   FontListDialog *font_list_dialog{nullptr};
   QSignalMapper *exportformat_mapper;
 
+private slots:
+  void stopAnimation();
+
 public slots:
+  void editorSwitched(EditorInterface* editor);
   void updateExportActions();
   void updateRecentFiles(const QString& FileSavedOrOpened);
   void updateRecentFileActions();
@@ -262,6 +266,7 @@ protected:
   bool eventFilter(QObject *obj, QEvent *event) override;
 
 public slots:
+  void onClosingEditor(EditorInterface* closingEditor, EditorInterface* newEditorUnderFocus);
   void actionRenderPreview();
 private slots:
   void csgRender();
