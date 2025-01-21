@@ -807,6 +807,7 @@ void MainWindow::onClosingEditor(EditorInterface* editor,
                                  EditorInterface* newEditorUnderFocus){
     // editor will be closed and the associated memory pointer release
     // every componing holding it should stop using it and act appropriately
+    std::cout << " NEW EDITOR IS " << newEditorUnderFocus << std::endl;
     activeEditor = newEditorUnderFocus;
     actionRenderPreview();
 }
@@ -1126,6 +1127,8 @@ void MainWindow::compile(bool reload, bool forcedone)
   OpenSCAD::parameterCheck = Preferences::inst()->getValue("advanced/enableParameterCheck").toBool();
   OpenSCAD::rangeCheck = Preferences::inst()->getValue("advanced/enableParameterRangeCheck").toBool();
 
+  assert(activeEditor);
+
   try{
     bool shouldcompiletoplevel = false;
     bool didcompile = false;
@@ -1303,6 +1306,7 @@ void MainWindow::compileEnded()
 
 void MainWindow::instantiateRoot()
 {
+  assert(activeEditor);
   // Go on and instantiate root_node, then call the continuation slot
 
   // Invalidate renderers before we kill the CSG tree
@@ -1325,9 +1329,9 @@ void MainWindow::instantiateRoot()
   std::filesystem::path doc(activeEditor->filepath.toStdString());
   this->tree.setDocumentPath(doc.parent_path().string());
 
-  std::cout << "Instantiate ROOT " << doc.string() << std::endl;
+  std::cout << "Instantiate ROOT " << doc.string() << " " << activeEditor <<  std::endl;
   tabManager->setPreviewedEditorChanger(activeEditor);
-
+  std::cout << "INSTANTIATE ... ... " << std::endl;
   if (this->root_file) {
     // Evaluate CSG tree
     LOG("Compiling design (CSG Tree generation)...");
@@ -1374,6 +1378,7 @@ void MainWindow::instantiateRoot()
     LOG(" ");
     this->processEvents();
   }
+               std::cout << "instaniat DONE" << std::endl;
 }
 
 /*!
@@ -2450,7 +2455,9 @@ void MainWindow::measureFinished()
 
 void MainWindow::clearAllSelectionIndicators()
 {
-  this->activeEditor->clearAllSelectionIndicators();
+    std::cout << "CLEA ALL SELECTIO INDICATORS " << std::endl;
+  if(tabManager)
+      tabManager->clearAllSelectionIndicators();
 }
 
 void findNodesWithSameMod(std::shared_ptr<const AbstractNode> tree,

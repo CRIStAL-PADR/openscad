@@ -143,6 +143,7 @@ void TabManager::openEditor(const QString& filename)
   if (editor->filepath.isEmpty() && !editor->isContentModified() && !editor->parameterWidget->isModified()) {
       openTab(filename);
   } else {
+      std::cout << "createTAB ? " << filename.toStdString() << std::endl;
     createTab(filename);
   }
 }
@@ -452,6 +453,7 @@ void TabManager::setTabModified(EditorInterface *edt)
 
 void TabManager::setPreviewedEditorChanger(EditorInterface* newEditor)
 {
+    assert(newEditor);
     std::cout << "setPreviewEditor " << tabWidget->indexOf(newEditor) << std::endl;
    // set the color of un-previewed editors to middle gray
    for(size_t indice = 0; indice < tabWidget->count();++indice)
@@ -460,6 +462,7 @@ void TabManager::setPreviewedEditorChanger(EditorInterface* newEditor)
    }
    // set the currently preview editor in dark
    tabWidget->tabBar()->setTabTextColor(tabWidget->indexOf(newEditor), QColor::fromRgbF(0.1,0.1,0.1,1.0));
+    std::cout << "RECOLORED DONE" << std::endl;
 }
 
 
@@ -484,6 +487,14 @@ void TabManager::openTab(const QString& filename)
   bool opened = refreshDocument();
 }
 
+void TabManager::clearAllSelectionIndicators()
+{
+    for(auto e : editorList)
+    {
+        e->clearAllSelectionIndicators();
+    }
+}
+
 void TabManager::setTabName(const QString& filename, EditorInterface *edt)
 {
   if (edt == nullptr) {
@@ -504,6 +515,7 @@ void TabManager::setTabName(const QString& filename, EditorInterface *edt)
     tabWidget->setTabToolTip(tabWidget->indexOf(edt), fileinfo.filePath());
     QDir::setCurrent(fileinfo.dir().absolutePath());
   }
+
   par->editorTopLevelChanged(par->editorDock->isFloating());
   par->changedTopLevelConsole(par->consoleDock->isFloating());
   par->parameterTopLevelChanged(par->parameterDock->isFloating());

@@ -90,6 +90,9 @@ public slots:
   void setTabModified(EditorInterface *);
   void setPreviewedEditorChanger(EditorInterface* );
 
+  /// Clear the selection indicators on every editors
+  void clearAllSelectionIndicators();
+
   bool saveAll();
   void closeCurrentTab();
   void nextTab();
