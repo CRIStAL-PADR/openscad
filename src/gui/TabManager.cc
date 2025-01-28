@@ -63,12 +63,14 @@ TabManager::TabManager(MainWindow *o, const QString& filename)
   connect(par->editActionNextBookmark, SIGNAL(triggered()), this, SLOT(nextBookmark()));
   connect(par->editActionPrevBookmark, SIGNAL(triggered()), this, SLOT(prevBookmark()));
   connect(par->editActionJumpToNextError, SIGNAL(triggered()), this, SLOT(jumpToNextError()));
+
+  tabWidget->tabBar()->setExpanding(false);
 }
 
 QWidget *TabManager::getTabHeader()
 {
   assert(tabWidget != nullptr);
-  return tabWidget;
+  return tabWidget->tabBar();
 }
 
 QWidget *TabManager::getTabContent()
