@@ -84,7 +84,7 @@ QWidget *TabManager::getTabContent()
 void TabManager::tabSwitched(int x)
 {
   assert(tabWidget != nullptr);
-  editor = (EditorInterface*)tabWidget->widget(x);
+  editor = (EditorInterface *)tabWidget->widget(x);
   par->activeEditor = editor;
   par->parameterDock->setWidget(editor->parameterWidget);
 
@@ -102,16 +102,15 @@ void TabManager::tabSwitched(int x)
   }
 
   // Disable the non visible editors... because it seems there is a bug.
-  for(auto& editor : editorList)
-  {
-      auto sce = (ScintillaEditor *) editor;
-      // Workaround manually disabling interactions with editor by setting it
-      // to read-only when not being shown.  This is an upstream bug from Qt
-      // (tracking ticket: https://bugreports.qt.io/browse/QTBUG-82939) and
-      // may eventually get resolved at which point this bit and the stuff in
-      // the else should be removed. Currently known to affect 5.14.1 and 5.15.0
-      sce->qsci->setReadOnly(true);
-      sce->setupAutoComplete(true);
+  for (auto& editor : editorList) {
+    auto sce = (ScintillaEditor *) editor;
+    // Workaround manually disabling interactions with editor by setting it
+    // to read-only when not being shown.  This is an upstream bug from Qt
+    // (tracking ticket: https://bugreports.qt.io/browse/QTBUG-82939) and
+    // may eventually get resolved at which point this bit and the stuff in
+    // the else should be removed. Currently known to affect 5.14.1 and 5.15.0
+    sce->qsci->setReadOnly(true);
+    sce->setupAutoComplete(true);
   }
   auto sceditor = (ScintillaEditor *) editor;
   sceditor->qsci->setReadOnly(false);
@@ -164,7 +163,7 @@ void TabManager::prevTab()
 
 void TabManager::actionNew()
 {
-  if (par->windowActionHideEditor->isChecked()) par->windowActionHideEditor->trigger(); //if editor hidden, make it visible
+  if (!par->editorDock->isVisible()) par->editorDock->show();
   createTab("");
 }
 
@@ -207,7 +206,9 @@ void TabManager::createTab(const QString& filename)
   connect(editor, SIGNAL(uriDropped(const QUrl&)), par, SLOT(handleFileDrop(const QUrl&)));
   connect(editor, SIGNAL(previewRequest()), par, SLOT(actionRenderPreview()));
   connect(editor, SIGNAL(showContextMenuEvent(const QPoint&)), this, SLOT(showContextMenuEvent(const QPoint&)));
-  connect(editor, &EditorInterface::focusIn, this, [=]() { par->setLastFocus(editor); });
+  connect(editor, &EditorInterface::focusIn, this, [ = ]() {
+    par->setLastFocus(editor);
+  });
 
   connect(Preferences::inst(), SIGNAL(editorConfigChanged()), editor, SLOT(applySettings()));
   connect(Preferences::inst(), SIGNAL(autocompleteChanged(bool)), editor, SLOT(onAutocompleteChanged(bool)));

@@ -249,11 +249,11 @@ void removeExportActions(QToolBar *toolbar, QAction *action) {
 }
 
 void addExportActions(const MainWindow *mainWindow, QToolBar *toolbar, QAction *action) {
-  for (const std::string &identifier : {Settings::Settings::toolbarExport3D.value(), 
+  for (const std::string& identifier : {Settings::Settings::toolbarExport3D.value(),
                                         Settings::Settings::toolbarExport2D.value()}) {
     FileFormat format;
     fileformat::fromIdentifier(identifier, format);
-    const auto it=mainWindow->export_map.find(format);
+    const auto it = mainWindow->export_map.find(format);
     // FIXME: Allow turning off the toolbar entry?
     if (it != mainWindow->export_map.end()) {
       toolbar->insertAction(action, it->second);
@@ -285,30 +285,23 @@ MainWindow::MainWindow(const QStringList& filenames)
   this->addAction(editActionInsertTemplate);
   this->addAction(editActionFoldAll);
 
-  std::vector<std::tuple<Dock*,QString>> docks = {
-      std::make_tuple(editorDock, QString(_("Editor"))),
-      std::make_tuple(consoleDock, QString(_("Console"))),
-      std::make_tuple(parameterDock, QString(_("Customizer"))),
-      std::make_tuple(errorLogDock, QString(_("Error-Log"))),
-      std::make_tuple(animateDock, QString(_("Animate"))),
-      std::make_tuple(fontListDock, QString(_("Font Lists"))),
-      std::make_tuple(viewportControlDock, QString(_("Viewport-Control")))
+  std::vector<std::tuple<Dock *, QString>> docks = {
+    std::make_tuple(editorDock, QString(_("Editor"))),
+    std::make_tuple(consoleDock, QString(_("Console"))),
+    std::make_tuple(parameterDock, QString(_("Customizer"))),
+    std::make_tuple(errorLogDock, QString(_("Error-Log"))),
+    std::make_tuple(animateDock, QString(_("Animate"))),
+    std::make_tuple(fontListDock, QString(_("Font Lists"))),
+    std::make_tuple(viewportControlDock, QString(_("Viewport-Control")))
   };
 
   this->editorDock->setConfigKey("view/hideEditor");
-  this->editorDock->setAction(this->windowActionHideEditor);
   this->consoleDock->setConfigKey("view/hideConsole");
-  this->consoleDock->setAction(this->windowActionHideConsole);
   this->parameterDock->setConfigKey("view/hideCustomizer");
-  this->parameterDock->setAction(this->windowActionHideCustomizer);
   this->errorLogDock->setConfigKey("view/hideErrorLog");
-  this->errorLogDock->setAction(this->windowActionHideErrorLog);
   this->animateDock->setConfigKey("view/hideAnimate");
-  this->animateDock->setAction(this->windowActionHideAnimate);
   this->fontListDock->setConfigKey("view/hideFontList");
-  this->fontListDock->setAction(this->windowActionHideFontList);
   this->viewportControlDock->setConfigKey("view/hideViewportControl");
-  this->viewportControlDock->setAction(this->windowActionHideViewportControl);
 
   this->versionLabel = nullptr; // must be initialized before calling updateStatusBar()
   updateStatusBar(nullptr);
@@ -492,21 +485,21 @@ MainWindow::MainWindow(const QStringList& filenames)
   connect(this->designActionDisplayCSGTree, SIGNAL(triggered()), this, SLOT(actionDisplayCSGTree()));
   connect(this->designActionDisplayCSGProducts, SIGNAL(triggered()), this, SLOT(actionDisplayCSGProducts()));
 
-  export_map[FileFormat::BINARY_STL] =this->fileActionExportBinarySTL;
-  export_map[FileFormat::ASCII_STL] =this->fileActionExportAsciiSTL;
+  export_map[FileFormat::BINARY_STL] = this->fileActionExportBinarySTL;
+  export_map[FileFormat::ASCII_STL] = this->fileActionExportAsciiSTL;
   export_map[FileFormat::_3MF] = this->fileActionExport3MF;
-  export_map[FileFormat::OBJ] =  this->fileActionExportOBJ;
-  export_map[FileFormat::OFF] =  this->fileActionExportOFF;
-  export_map[FileFormat::WRL] =  this->fileActionExportWRL;
-  export_map[FileFormat::POV] =  this->fileActionExportPOV;
-  export_map[FileFormat::AMF] =  this->fileActionExportAMF;
-  export_map[FileFormat::DXF] =  this->fileActionExportDXF;
-  export_map[FileFormat::SVG] =  this->fileActionExportSVG;
-  export_map[FileFormat::PDF] =  this->fileActionExportPDF;
-  export_map[FileFormat::CSG] =  this->fileActionExportCSG;
-  export_map[FileFormat::PNG] =  this->fileActionExportImage;
+  export_map[FileFormat::OBJ] = this->fileActionExportOBJ;
+  export_map[FileFormat::OFF] = this->fileActionExportOFF;
+  export_map[FileFormat::WRL] = this->fileActionExportWRL;
+  export_map[FileFormat::POV] = this->fileActionExportPOV;
+  export_map[FileFormat::AMF] = this->fileActionExportAMF;
+  export_map[FileFormat::DXF] = this->fileActionExportDXF;
+  export_map[FileFormat::SVG] = this->fileActionExportSVG;
+  export_map[FileFormat::PDF] = this->fileActionExportPDF;
+  export_map[FileFormat::CSG] = this->fileActionExportCSG;
+  export_map[FileFormat::PNG] = this->fileActionExportImage;
 
-  for (auto &pair : export_map) {
+  for (auto& pair : export_map) {
     connect(pair.second, SIGNAL(triggered()), this->exportformat_mapper, SLOT(map()));
     this->exportformat_mapper->setMapping(pair.second, int(pair.first));
   }
@@ -556,18 +549,18 @@ MainWindow::MainWindow(const QStringList& filenames)
   connect(this->viewActionHideEditorToolBar, SIGNAL(triggered()), this, SLOT(hideEditorToolbar()));
   connect(this->viewActionHide3DViewToolBar, SIGNAL(triggered()), this, SLOT(hide3DViewToolbar()));
 
-  for(auto& [dock, title] : docks){
-      dock->setWindowTitle(title);
-      menuWindow->addAction(dock->toggleViewAction());
+  for (auto& [dock, title] : docks) {
+    dock->setWindowTitle(title);
+    menuWindow->addAction(dock->toggleViewAction());
   }
-
-  connect(this->windowActionHideEditor, SIGNAL(triggered()), this, SLOT(hideEditor()));
-  connect(this->windowActionHideConsole, SIGNAL(triggered()), this, SLOT(hideConsole()));
-  connect(this->windowActionHideCustomizer, SIGNAL(triggered()), this, SLOT(hideParameters()));
-  connect(this->windowActionHideErrorLog, SIGNAL(triggered()), this, SLOT(hideErrorLog()));
-  connect(this->windowActionHideAnimate, SIGNAL(triggered()), this, SLOT(hideAnimate()));
-  connect(this->windowActionHideFontList, SIGNAL(triggered()), this, SLOT(hideFontList()));
-  connect(this->windowActionHideViewportControl, SIGNAL(triggered()), this, SLOT(hideViewportControl()));
+  // Connects each dock to its application specific behavior when is visibility changes.
+  connect(editorDock, &Dock::visibilityChanged, this, &MainWindow::onEditorVisibilityChanged);
+  connect(consoleDock, &Dock::visibilityChanged, this, &MainWindow::onConsoleVisibilityChanged);
+  connect(errorLogDock, &Dock::visibilityChanged, this, &MainWindow::onErrorLogVisibilityChanged);
+  connect(viewportControlDock, &Dock::visibilityChanged, this, &MainWindow::onViewportControlVisibilityChanged);
+  connect(parameterDock, &Dock::visibilityChanged, this, &MainWindow::onParametersVisibilityChanged);
+  connect(animateDock, &Dock::visibilityChanged, this, &MainWindow::onAnimateVisibilityChanged);
+  connect(fontListDock, &Dock::visibilityChanged, this, &MainWindow::onFontListVisibilityChanged);
 
   // Help menu
   connect(this->helpActionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
@@ -682,7 +675,7 @@ MainWindow::MainWindow(const QStringList& filenames)
     tabifyDockWidget(consoleDock, errorLogDock);
     tabifyDockWidget(errorLogDock, fontListDock);
     tabifyDockWidget(fontListDock, animateDock);
-    showConsole();
+    consoleDock->show();
     hideCustomizer = true;
     hideViewportControl = true;
   } else {
@@ -713,11 +706,10 @@ MainWindow::MainWindow(const QStringList& filenames)
 
   // Create the popup menu to navigate between the docks by keyboard.
   navigationMenu = new QMenu();
-  for(auto& [dock, title] : docks)
-  {
-      auto action2 = navigationMenu->addAction(title);
-      action2->setProperty("id", QVariant::fromValue(dock));
-      connect(action2, &QAction::triggered, this, &MainWindow::onNavigationTriggerContextMenuEntry);
+  for (auto& [dock, title] : docks) {
+    auto action2 = navigationMenu->addAction(title);
+    action2->setProperty("id", QVariant::fromValue(dock));
+    connect(action2, &QAction::triggered, this, &MainWindow::onNavigationTriggerContextMenuEntry);
   }
   windowActionJumpTo->setMenu(navigationMenu);
 
@@ -757,26 +749,24 @@ MainWindow::MainWindow(const QStringList& filenames)
 }
 
 void MainWindow::onNavigationOpenContextMenu() {
-    navigationMenu->exec(QCursor::pos());
+  navigationMenu->exec(QCursor::pos());
 }
 
 void MainWindow::onNavigationTriggerContextMenuEntry(){
-    auto *action = qobject_cast<QAction *>(sender());
-    if (!action || !action->property("id").isValid())
-        return;
+  auto *action = qobject_cast<QAction *>(sender());
+  if (!action || !action->property("id").isValid()) return;
 
-    Dock* dock = action->property("id").value<Dock*>();
+  Dock *dock = action->property("id").value<Dock *>();
 
-    dock->show();
-    dock->setFocus();
+  dock->show();
+  dock->setFocus();
 
-    // Forward the focus on the content of the tabmanager.
-    // Maybe it is possible to make that in a cleaner way, the non use of
-    // QTabWidget make is hard
-    if(dock == editorDock)
-    {
-        tabManager->setFocus();
-    }
+  // Forward the focus on the content of the tabmanager.
+  // Maybe it is possible to make that in a cleaner way, the non use of
+  // QTabWidget make is hard
+  if (dock == editorDock) {
+    tabManager->setFocus();
+  }
 }
 
 void MainWindow::updateExportActions() {
@@ -823,22 +813,15 @@ void MainWindow::addKeyboardShortCut(const QList<QAction *>& actions)
  * Qt call. So the values are loaded before the call and restored here
  * regardless of the (potential outdated) serialized state.
  */
-void MainWindow::updateWindowSettings(bool console, bool editor, bool customizer, bool errorLog, bool editorToolbar, bool viewToolbar, bool animate, bool fontList, bool viewportControl)
+void MainWindow::updateWindowSettings(bool console, bool editor, bool parameter, bool errorLog, bool editorToolbar, bool viewToolbar, bool animate, bool fontList, bool viewportControl)
 {
-  windowActionHideEditor->setChecked(editor);
-  hideEditor();
-  windowActionHideConsole->setChecked(console);
-  hideConsole();
-  windowActionHideErrorLog->setChecked(errorLog);
-  hideErrorLog();
-  windowActionHideCustomizer->setChecked(customizer);
-  hideParameters();
-  windowActionHideAnimate->setChecked(animate);
-  hideAnimate();
-  windowActionHideFontList->setChecked(fontList);
-  hideFontList();
-  windowActionHideViewportControl->setChecked(viewportControl);
-  hideViewportControl();
+  editorDock->setVisible(!editor);
+  consoleDock->setVisible(!console);
+  errorLogDock->setVisible(!errorLog);
+  viewportControlDock->setVisible(!viewportControl);
+  parameterDock->setVisible(!parameter);
+  animateDock->setVisible(!animate);
+  fontListDock->setVisible(!fontList);
 
   viewActionHideEditorToolBar->setChecked(editorToolbar);
   hideEditorToolbar();
@@ -1969,7 +1952,7 @@ void MainWindow::parseTopLevelDocument()
 
 void MainWindow::changeParameterWidget()
 {
-  windowActionHideCustomizer->setVisible(true);
+  parameterDock->show();
 }
 
 void MainWindow::checkAutoReload()
@@ -2058,7 +2041,7 @@ void MainWindow::actionRenderPreview()
   this->designActionMeasureDist->setEnabled(false);
   this->designActionMeasureAngle->setEnabled(false);
 
-  prepareCompile("csgRender", windowActionHideAnimate->isChecked(), true);
+  prepareCompile("csgRender", !animateDock->isVisible(), true);
   compile(false, false);
   if (preview_requested) {
     // if the action was called when the gui was locked, we must request it one more time
@@ -2097,39 +2080,39 @@ std::unique_ptr<ExternalToolInterface> createExternalToolService(
   print_service_t serviceType, const QString& serviceName, FileFormat fileFormat)
 {
   switch (serviceType) {
-    case print_service_t::NONE:
+  case print_service_t::NONE:
     // TODO: Print warning
     return nullptr;
     break;
-    case print_service_t::PRINT_SERVICE: {
-      if (const auto printService = PrintService::getPrintService(serviceName.toStdString())) {
-        return createExternalPrintService(printService, fileFormat);
-      }
-      LOG("Unknown print service \"%1$s\"", serviceName.toStdString());
-      return nullptr;
-      break;
+  case print_service_t::PRINT_SERVICE: {
+    if (const auto printService = PrintService::getPrintService(serviceName.toStdString())) {
+      return createExternalPrintService(printService, fileFormat);
     }
-    case print_service_t::OCTOPRINT:
-      return createOctoPrintService(fileFormat);
+    LOG("Unknown print service \"%1$s\"", serviceName.toStdString());
+    return nullptr;
     break;
-    case print_service_t::LOCAL_APPLICATION:
-      return createLocalProgramService(fileFormat);
+  }
+  case print_service_t::OCTOPRINT:
+    return createOctoPrintService(fileFormat);
+    break;
+  case print_service_t::LOCAL_APPLICATION:
+    return createLocalProgramService(fileFormat);
     break;
   }
   return {};
 }
 
-void MainWindow::sendToExternalTool(ExternalToolInterface &externalToolService)
+void MainWindow::sendToExternalTool(ExternalToolInterface& externalToolService)
 {
   const QFileInfo activeFile(activeEditor->filepath);
   QString activeFileName = activeFile.fileName();
   if (activeFileName.isEmpty()) activeFileName = "Untitled.scad";
   // TODO: Replace suffix to match exported file format?
-  
+
   activeFileName = activeFileName + QString::fromStdString("." + fileformat::toSuffix(externalToolService.fileFormat()));
 
   bool export_status = externalToolService.exportTemporaryFile(this->root_geom, activeFileName, &qglview->cam);
-  
+
   this->progresswidget = new ProgressWidget(this);
   connect(this->progresswidget, SIGNAL(requestShow()), this, SLOT(showProgress()));
 
@@ -2390,7 +2373,7 @@ void getCodeLocation(const AbstractNode *self, int currentLevel,  int includeLev
     if (*firstLine < 0 || *firstLine > location.firstLine()) {
       *firstLine = location.firstLine();
       *firstColumn = location.firstColumn();
-    } else if (*firstLine == location.firstLine() && *firstColumn > location.firstColumn())   {
+    } else if (*firstLine == location.firstLine() && *firstColumn > location.firstColumn()) {
       *firstColumn = location.firstColumn();
     }
 
@@ -2401,13 +2384,13 @@ void getCodeLocation(const AbstractNode *self, int currentLevel,  int includeLev
       if (*firstLine < 0 || *firstLine > location.firstLine()) {
         *firstLine = location.firstLine();
         *firstColumn = location.firstColumn();
-      } else if (*firstLine == location.firstLine() && *firstColumn > location.firstColumn())   {
+      } else if (*firstLine == location.firstLine() && *firstColumn > location.firstColumn()) {
         *firstColumn = location.firstColumn();
       }
       if (*lastLine < 0 || *lastLine < location.lastLine()) {
         *lastLine = location.lastLine();
         *lastColumn = location.lastColumn();
-      } else if (*lastLine == location.lastLine() && *lastColumn < location.lastColumn())   {
+      } else if (*lastLine == location.lastLine() && *lastColumn < location.lastColumn()) {
         *lastColumn = location.lastColumn();
       }
     }
@@ -2660,8 +2643,8 @@ void MainWindow::actionCheckValidity()
   }
 
   bool valid = true;
-#ifdef ENABLE_CGAL 
- if (auto N = std::dynamic_pointer_cast<const CGAL_Nef_polyhedron>(this->root_geom)) {
+#ifdef ENABLE_CGAL
+  if (auto N = std::dynamic_pointer_cast<const CGAL_Nef_polyhedron>(this->root_geom)) {
     valid = N->p3 ? const_cast<CGAL_Nef_polyhedron3&>(*N->p3).is_valid() : false;
   } else
 #endif
@@ -2728,8 +2711,8 @@ bool MainWindow::canExport(unsigned int dim)
   auto manifold = dynamic_cast<const ManifoldGeometry *>(this->root_geom.get());
   if (manifold && !manifold->isValid() ) {
     LOG(message_group::UI_Warning, "Object may not be a valid manifold and may need repair! "
-      "Error message: %1$s. See https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/STL_Import_and_Export",
-      ManifoldUtils::statusToString(manifold->getManifold().Status()));
+        "Error message: %1$s. See https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/STL_Import_and_Export",
+        ManifoldUtils::statusToString(manifold->getManifold().Status()));
   }
 #endif
 
@@ -2768,87 +2751,87 @@ void MainWindow::actionExport(unsigned int dim, ExportInfo& exportInfo)
 void MainWindow::actionExportFileFormat(int fmt)
 {
   const auto format = static_cast<FileFormat>(fmt);
-  const FileFormatInfo &info = fileformat::info(format);
+  const FileFormatInfo& info = fileformat::info(format);
 
   ExportInfo exportInfo = createExportInfo(format, info, activeEditor->filepath.toStdString(), &qglview->cam, {});
 
   switch (format) {
-    case FileFormat::PDF:
-      {
-        auto exportPdfDialog = new ExportPdfDialog();
-        exportPdfDialog->deleteLater();
-        if (exportPdfDialog->exec() == QDialog::Rejected) {
-          return;
-        }
+  case FileFormat::PDF:
+  {
+    auto exportPdfDialog = new ExportPdfDialog();
+    exportPdfDialog->deleteLater();
+    if (exportPdfDialog->exec() == QDialog::Rejected) {
+      return;
+    }
 
-        exportInfo.optionsPdf = exportPdfDialog->getOptions();
-        actionExport(2, exportInfo);
-      }
-      break;
-    case FileFormat::_3MF:
-      {
-        auto export3mfDialog = new Export3mfDialog();
-        export3mfDialog->deleteLater();
-        if (export3mfDialog->exec() == QDialog::Rejected) {
-          return;
-        }
-
-        exportInfo.options3mf = export3mfDialog->getOptions();
-        actionExport(3, exportInfo);
-      }
-      break;
-    case FileFormat::CSG:
-{
-  setCurrentOutput();
-
-  if (!this->root_node) {
-    LOG(message_group::Error, "Nothing to export. Please try compiling first.");
-    clearCurrentOutput();
-    return;
+    exportInfo.optionsPdf = exportPdfDialog->getOptions();
+    actionExport(2, exportInfo);
   }
-  const QString suffix = "csg";
-  auto csg_filename = QFileDialog::getSaveFileName(this,
-                                                   _("Export CSG File"), exportPath(suffix), _("CSG Files (*.csg)"));
+  break;
+  case FileFormat::_3MF:
+  {
+    auto export3mfDialog = new Export3mfDialog();
+    export3mfDialog->deleteLater();
+    if (export3mfDialog->exec() == QDialog::Rejected) {
+      return;
+    }
 
-  if (csg_filename.isEmpty()) {
-    clearCurrentOutput();
-    return;
+    exportInfo.options3mf = export3mfDialog->getOptions();
+    actionExport(3, exportInfo);
   }
+  break;
+  case FileFormat::CSG:
+  {
+    setCurrentOutput();
 
-  std::ofstream fstream(csg_filename.toLocal8Bit());
-  if (!fstream.is_open()) {
-    LOG("Can't open file \"%1$s\" for export", csg_filename.toLocal8Bit().constData());
-  } else {
-    fstream << this->tree.getString(*this->root_node, "\t") << "\n";
-    fstream.close();
-    fileExportedMessage("CSG", csg_filename);
-    this->export_paths[suffix] = csg_filename;
-  }
-
-  clearCurrentOutput();
-}      break;
-    case FileFormat::PNG:
-{
-  // Grab first to make sure dialog box isn't part of the grabbed image
-  qglview->grabFrame();
-  const QString suffix = "png";
-  auto img_filename = QFileDialog::getSaveFileName(this,
-                                                   _("Export Image"), exportPath(suffix), _("PNG Files (*.png)"));
-  if (!img_filename.isEmpty()) {
-    bool saveResult = qglview->save(img_filename.toLocal8Bit().constData());
-    if (saveResult) {
-      this->export_paths[suffix] = img_filename;
-      setCurrentOutput();
-      fileExportedMessage("PNG", img_filename);
+    if (!this->root_node) {
+      LOG(message_group::Error, "Nothing to export. Please try compiling first.");
       clearCurrentOutput();
+      return;
+    }
+    const QString suffix = "csg";
+    auto csg_filename = QFileDialog::getSaveFileName(this,
+                                                     _("Export CSG File"), exportPath(suffix), _("CSG Files (*.csg)"));
+
+    if (csg_filename.isEmpty()) {
+      clearCurrentOutput();
+      return;
+    }
+
+    std::ofstream fstream(csg_filename.toLocal8Bit());
+    if (!fstream.is_open()) {
+      LOG("Can't open file \"%1$s\" for export", csg_filename.toLocal8Bit().constData());
     } else {
-      LOG("Can't open file \"%1$s\" for export image", img_filename.toLocal8Bit().constData());
+      fstream << this->tree.getString(*this->root_node, "\t") << "\n";
+      fstream.close();
+      fileExportedMessage("CSG", csg_filename);
+      this->export_paths[suffix] = csg_filename;
+    }
+
+    clearCurrentOutput();
+  }      break;
+  case FileFormat::PNG:
+  {
+    // Grab first to make sure dialog box isn't part of the grabbed image
+    qglview->grabFrame();
+    const QString suffix = "png";
+    auto img_filename = QFileDialog::getSaveFileName(this,
+                                                     _("Export Image"), exportPath(suffix), _("PNG Files (*.png)"));
+    if (!img_filename.isEmpty()) {
+      bool saveResult = qglview->save(img_filename.toLocal8Bit().constData());
+      if (saveResult) {
+        this->export_paths[suffix] = img_filename;
+        setCurrentOutput();
+        fileExportedMessage("PNG", img_filename);
+        clearCurrentOutput();
+      } else {
+        LOG("Can't open file \"%1$s\" for export image", img_filename.toLocal8Bit().constData());
+      }
     }
   }
-}
-      break;
-    default:
-      actionExport(fileformat::is3D(format) ? 3 : fileformat::is2D(format) ? 2 : 0, exportInfo);
+  break;
+  default:
+    actionExport(fileformat::is3D(format) ? 3 : fileformat::is2D(format) ? 2 : 0, exportInfo);
   }
 }
 
@@ -3246,166 +3229,67 @@ void MainWindow::hide3DViewToolbar()
 void MainWindow::showLink(const QString& link)
 {
   if (link == "#console") {
-    showConsole();
-  } else if (link == "#errorlog") {
-    showErrorLog();
-  }
-}
-
-void MainWindow::showEditor()
-{
-  windowActionHideEditor->setChecked(false);
-  hideEditor();
-  editorDock->raise();
-  tabManager->setFocus();
-}
-
-void MainWindow::hideEditor()
-{
-}
-
-
-void MainWindow::showConsole()
-{
-  windowActionHideConsole->setChecked(false);
-  frameCompileResult->hide();
-  consoleDock->show();
-  consoleDock->raise();
-  console->setFocus();
-}
-
-void MainWindow::hideConsole()
-{
-  if (windowActionHideConsole->isChecked()) {
-    consoleDock->hide();
-  } else {
     consoleDock->show();
-  }
-}
-
-void MainWindow::showErrorLog()
-{
-  windowActionHideErrorLog->setChecked(false);
-  frameCompileResult->hide();
-  errorLogDock->show();
-  errorLogDock->raise();
-  errorLogWidget->logTable->setFocus();
-}
-
-void MainWindow::hideErrorLog()
-{
-  if (windowActionHideErrorLog->isChecked()) {
-    errorLogDock->hide();
-  } else {
+  } else if (link == "#errorlog") {
     errorLogDock->show();
   }
 }
 
-void MainWindow::showAnimate()
+void MainWindow::onEditorVisibilityChanged(bool isVisible)
 {
-  windowActionHideAnimate->setChecked(false);
-  animateDock->show();
-  animateDock->raise();
-  animateWidget->setFocus();
+  std::cout << "EDITOR VISIBILITY CHANGED " << isVisible << std::endl;
+  if (isVisible) tabManager->setFocus();
 }
 
-void MainWindow::hideAnimate()
+void MainWindow::onConsoleVisibilityChanged(bool isVisible)
 {
-  if (windowActionHideAnimate->isChecked()) {
-    animateDock->hide();
-  } else {
-    animateDock->show();
+  std::cout << "CONSOLE VISIBILITY CHANGED" << std::endl;
+  if (isVisible) {
+    frameCompileResult->hide();
+    console->setFocus();
   }
 }
 
-void MainWindow::showFontList()
+void MainWindow::onErrorLogVisibilityChanged(bool isVisible)
 {
-  windowActionHideFontList->setChecked(false);
-  fontListWidget->update_font_list();
-  fontListDock->show();
-  fontListDock->raise();
-  fontListWidget->setFocus();
+  if (isVisible) {
+    frameCompileResult->hide();
+    errorLogDock->raise();
+    errorLogWidget->logTable->setFocus();
+  }
 }
 
-void MainWindow::hideFontList()
+void MainWindow::onAnimateVisibilityChanged(bool isVisible)
 {
-  if (windowActionHideFontList->isChecked()) {
-    fontListDock->hide();
-  } else {
+  if (isVisible) {
+    animateDock->raise();
+    animateWidget->setFocus();
+  }
+}
+
+void MainWindow::onFontListVisibilityChanged(bool isVisible)
+{
+  if (isVisible) {
     fontListWidget->update_font_list();
-    fontListDock->show();
+    fontListDock->raise();
+    fontListWidget->setFocus();
   }
 }
 
-void MainWindow::showViewportControl()
+void MainWindow::onViewportControlVisibilityChanged(bool isVisible)
 {
-  windowActionHideViewportControl->setChecked(false);
-  viewportControlDock->show();
-  viewportControlDock->raise();
-  viewportControlWidget->setFocus();
-}
-
-void MainWindow::hideViewportControl()
-{
-  if (windowActionHideViewportControl->isChecked()) {
-    viewportControlDock->hide();
-  } else {
-    viewportControlDock->show();
+  if (isVisible) {
+    viewportControlDock->raise();
+    viewportControlWidget->setFocus();
   }
 }
 
-
-void MainWindow::showParameters()
+void MainWindow::onParametersVisibilityChanged(bool isVisible)
 {
-  windowActionHideCustomizer->setChecked(false);
-  parameterDock->show();
-  parameterDock->raise();
-  activeEditor->parameterWidget->scrollArea->setFocus();
-}
-
-void MainWindow::hideParameters()
-{
-  if (windowActionHideCustomizer->isChecked()) {
-    parameterDock->hide();
-  } else {
-    parameterDock->show();
+  if (isVisible) {
+    parameterDock->raise();
+    activeEditor->parameterWidget->scrollArea->setFocus();
   }
-}
-
-void MainWindow::onwindowActionSelectEditor()
-{
-  std::cout << "YO LO SHOW EDITOR ! " << std::endl;
-  showEditor();
-}
-
-void MainWindow::on_windowActionSelectConsole_triggered()
-{
-  showConsole();
-}
-
-void MainWindow::on_windowActionSelectErrorLog_triggered()
-{
-  showErrorLog();
-}
-
-void MainWindow::on_windowActionSelectAnimate_triggered()
-{
-  showAnimate();
-}
-
-void MainWindow::on_windowActionSelectFontList_triggered()
-{
-  showFontList();
-}
-
-void MainWindow::on_windowActionSelectViewportControl_triggered()
-{
-  showViewportControl();
-}
-
-void MainWindow::on_windowActionSelectCustomizer_triggered()
-{
-  showParameters();
 }
 
 void MainWindow::on_windowActionNextWindow_triggered()
@@ -3430,28 +3314,28 @@ void MainWindow::on_editActionFoldAll_triggered()
 
 void MainWindow::activateWindow(int offset)
 {
-  const std::array<DockFocus, 7> docks = {{
-                                              { editorDock, &MainWindow::onwindowActionSelectEditor },
-    { consoleDock, &MainWindow::on_windowActionSelectConsole_triggered },
-    { errorLogDock, &MainWindow::on_windowActionSelectErrorLog_triggered },
-    { parameterDock, &MainWindow::on_windowActionSelectCustomizer_triggered },
-    { fontListDock, &MainWindow::on_windowActionSelectFontList_triggered },
-    { animateDock, &MainWindow::on_windowActionSelectAnimate_triggered },
-    { viewportControlDock, &MainWindow::on_windowActionSelectViewportControl_triggered },
-  }};
+  const std::array<Dock *, 7> docks = {editorDock,
+                                       consoleDock,
+                                       errorLogDock,
+                                       parameterDock,
+                                       fontListDock,
+                                       animateDock,
+                                       viewportControlDock};
 
-  const int cnt = docks.size();
+  const int dockSize = docks.size();
   const auto focusWidget = QApplication::focusWidget();
   for (auto widget = focusWidget; widget != nullptr; widget = widget->parentWidget()) {
-    for (int idx = 0; idx < cnt; ++idx) {
-      if (widget == docks.at(idx).widget) {
-        for (int o = 1; o < cnt; ++o) {
-          const int target = (cnt + idx + o * offset) % cnt;
-          const auto& dock = docks.at(target);
-          if (dock.widget->isVisible()) {
-            dock.focus(this);
-            return;
-          }
+    for (int idx = 0; idx < dockSize; ++idx) {
+      if (widget != docks.at(idx)) continue;
+
+      for (int o = 1; o < dockSize; ++o) {
+        const int target = (dockSize + idx + o * offset) % dockSize;
+        const auto& dock = docks.at(target);
+
+        if (dock->isVisible()) {
+          dock->raise();
+          dock->setFocus();
+          return;
         }
       }
     }

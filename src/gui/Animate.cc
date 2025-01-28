@@ -27,7 +27,7 @@ Animate::Animate(QWidget *parent) : QWidget(parent)
   const auto scrollMargins = scrollAreaWidgetContents->layout()->contentsMargins();
   const auto parameterMargins = groupBoxParameter->layout()->contentsMargins();
   initMinWidth = width + margins.left() + margins.right() + scrollMargins.left() + scrollMargins.right()
-  +parameterMargins.left() + parameterMargins.right();
+    + parameterMargins.left() + parameterMargins.right();
 }
 
 void Animate::initGUI()
@@ -138,7 +138,7 @@ void Animate::incrementTVal()
 {
   if (this->anim_numsteps == 0) return;
 
-  if (mainWindow->windowActionHideCustomizer->isVisible()) {
+  if (mainWindow->animateDock->isVisible()) {
     if (mainWindow->activeEditor->parameterWidget->childHasFocus()) return;
   }
 
