@@ -263,7 +263,34 @@ void addExportActions(const MainWindow *mainWindow, QToolBar *toolbar, QAction *
 
 } // namespace
 
-MainWindow::MainWindow(const QStringList& filenames)
+RubberBandManager::RubberBandManager(MainWindow*w):
+    rubberBand(QRubberBand::Rectangle)
+{
+    setParent(w);
+    w->installEventFilter(this);
+}
+bool RubberBandManager::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::KeyRelease) {
+      auto keyEvent = static_cast<QKeyEvent *>(event);
+      if(keyEvent->key() == Qt::Key_Control && rubberBand.isVisible()){
+         hide();
+      }
+    }
+    return false;
+}
+
+void RubberBandManager::hide(){
+    rubberBand.hide();
+}
+
+void RubberBandManager::emphasize(Dock* dock){
+    rubberBand.setParent(dock);
+    rubberBand.setGeometry(dock->widget()->geometry());
+    rubberBand.show();
+}
+
+MainWindow::MainWindow(const QStringList& filenames) :
+    rubberBandManager(this)
 {
   setupUi(this);
 
@@ -551,6 +578,10 @@ MainWindow::MainWindow(const QStringList& filenames)
 
   for (auto& [dock, title] : docks) {
     dock->setWindowTitle(title);
+
+    dock->setFocusPolicy(Qt::StrongFocus);
+    dock->setStyleSheet("QDockWidget:focus {background-color: #FFFFCC;}");
+
     menuWindow->addAction(dock->toggleViewAction());
   }
   // Connects each dock to its application specific behavior when is visibility changes.
@@ -609,6 +640,7 @@ MainWindow::MainWindow(const QStringList& filenames)
   connect(this->findTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(selectFindType(int)));
   connect(this->findInputField, SIGNAL(textChanged(QString)), this, SLOT(findString(QString)));
   connect(this->findInputField, SIGNAL(returnPressed()), this->findNextButton, SLOT(animateClick()));
+
   find_panel->installEventFilter(this);
   if (QApplication::clipboard()->supportsFindBuffer()) {
     connect(this->findInputField, SIGNAL(textChanged(QString)), this, SLOT(updateFindBuffer(QString)));
@@ -710,8 +742,11 @@ MainWindow::MainWindow(const QStringList& filenames)
     auto action2 = navigationMenu->addAction(title);
     action2->setProperty("id", QVariant::fromValue(dock));
     connect(action2, &QAction::triggered, this, &MainWindow::onNavigationTriggerContextMenuEntry);
+    connect(action2, &QAction::hovered, this, &MainWindow::onNavigationHoveredContextMenuEntry);
   }
   windowActionJumpTo->setMenu(navigationMenu);
+
+  connect(navigationMenu, &QMenu::aboutToHide, this, &MainWindow::onNavigationCloseContextMenu);
 
   connect(this->editorDock, SIGNAL(topLevelChanged(bool)), this, SLOT(editorTopLevelChanged(bool)));
   connect(this->consoleDock, SIGNAL(topLevelChanged(bool)), this, SLOT(consoleTopLevelChanged(bool)));
@@ -750,6 +785,18 @@ MainWindow::MainWindow(const QStringList& filenames)
 
 void MainWindow::onNavigationOpenContextMenu() {
   navigationMenu->exec(QCursor::pos());
+}
+
+void MainWindow::onNavigationCloseContextMenu() {
+    rubberBandManager.hide();
+}
+
+void MainWindow::onNavigationHoveredContextMenuEntry(){
+    auto *action = qobject_cast<QAction *>(sender());
+    if (!action || !action->property("id").isValid()) return;
+
+    Dock *dock = action->property("id").value<Dock *>();
+    rubberBandManager.emphasize(dock);
 }
 
 void MainWindow::onNavigationTriggerContextMenuEntry(){
@@ -1803,9 +1850,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         return true;
       }
     }
-    return false;
   }
-  return QMainWindow::eventFilter(obj, event);
+  return false;
 }
 
 void MainWindow::setRenderVariables(ContextHandle<BuiltinContext>& context)
@@ -3312,6 +3358,7 @@ void MainWindow::on_editActionFoldAll_triggered()
   activeEditor->foldUnfold();
 }
 
+
 void MainWindow::activateWindow(int offset)
 {
   const std::array<Dock *, 7> docks = {editorDock,
@@ -3335,6 +3382,7 @@ void MainWindow::activateWindow(int offset)
         if (dock->isVisible()) {
           dock->raise();
           dock->setFocus();
+          rubberBandManager.emphasize(dock);
           return;
         }
       }

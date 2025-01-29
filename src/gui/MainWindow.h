@@ -31,7 +31,7 @@
 #include <QSoundEffect>
 #include <QTime>
 #include <QSignalMapper>
-
+#include <QRubberBand>
 #include "gui/Editor.h"
 #include "geometry/Geometry.h"
 #include "io/export.h"
@@ -58,6 +58,18 @@ class LibraryInfoDialog;
 class Preferences;
 class ProgressWidget;
 class ThrownTogetherRenderer;
+
+class RubberBandManager : QObject
+{
+    Q_OBJECT
+    QRubberBand rubberBand;
+public:
+    void hide();
+    void emphasize(Dock *w);
+
+    RubberBandManager(MainWindow*w);
+    bool eventFilter(QObject *obj, QEvent *event) override;
+};
 
 class MainWindow : public QMainWindow, public Ui::MainWindow, public InputEventHandler
 {
@@ -118,6 +130,7 @@ public:
   MainWindow(const QStringList& filenames);
   ~MainWindow() override;
 
+  RubberBandManager rubberBandManager;
 private:
   volatile bool isClosing = false;
   void consoleOutputRaw(const QString& msg);
@@ -141,7 +154,9 @@ private slots:
   void measureFinished();
   void errorLogOutput(const Message& log_msg);
   void onNavigationOpenContextMenu();
+  void onNavigationCloseContextMenu();
   void onNavigationTriggerContextMenuEntry();
+  void onNavigationHoveredContextMenuEntry();
 
 public:
   static void consoleOutput(const Message& msgObj, void *userdata);
