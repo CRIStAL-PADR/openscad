@@ -61,14 +61,14 @@ class ThrownTogetherRenderer;
 
 class RubberBandManager : QObject
 {
-    Q_OBJECT
-    QRubberBand rubberBand;
+  Q_OBJECT
+  QRubberBand rubberBand;
 public:
-    void hide();
-    void emphasize(Dock *w);
+  void hide();
+  void emphasize(Dock *w);
 
-    RubberBandManager(MainWindow*w);
-    bool eventFilter(QObject *obj, QEvent *event) override;
+  RubberBandManager(MainWindow *w);
+  bool eventFilter(QObject *obj, QEvent *event) override;
 };
 
 class MainWindow : public QMainWindow, public Ui::MainWindow, public InputEventHandler
@@ -269,7 +269,7 @@ private slots:
   void csgRender();
   void csgReloadRender();
   void action3DPrint();
-  void sendToExternalTool(class ExternalToolInterface &externalToolService);
+  void sendToExternalTool(class ExternalToolInterface& externalToolService);
   void actionRender();
   void actionRenderDone(const std::shared_ptr<const Geometry>&);
   void cgalRender();
@@ -310,7 +310,7 @@ public:
 
   QList<double> getTranslation() const;
   QList<double> getRotation() const;
-  std::unordered_map<FileFormat, QAction*>  export_map;
+  std::unordered_map<FileFormat, QAction *> export_map;
 
 public slots:
   void actionReloadRenderPreview();
@@ -405,7 +405,7 @@ private:
   ExportPdfPaperSize sizeString2Enum(const QString& current);
   ExportPdfPaperOrientation orientationsString2Enum(const QString& current);
 
-  QMenu* navigationMenu{nullptr};
+  QMenu *navigationMenu{nullptr};
   QSoundEffect *renderCompleteSoundEffect;
   std::vector<std::unique_ptr<QTemporaryFile>> allTempFiles;
 

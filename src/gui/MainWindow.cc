@@ -263,34 +263,34 @@ void addExportActions(const MainWindow *mainWindow, QToolBar *toolbar, QAction *
 
 } // namespace
 
-RubberBandManager::RubberBandManager(MainWindow*w):
-    rubberBand(QRubberBand::Rectangle)
+RubberBandManager::RubberBandManager(MainWindow *w) :
+  rubberBand(QRubberBand::Rectangle)
 {
-    setParent(w);
-    w->installEventFilter(this);
+  setParent(w);
+  w->installEventFilter(this);
 }
 bool RubberBandManager::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::KeyRelease) {
-      auto keyEvent = static_cast<QKeyEvent *>(event);
-      if(keyEvent->key() == Qt::Key_Control && rubberBand.isVisible()){
-         hide();
-      }
+  if (event->type() == QEvent::KeyRelease) {
+    auto keyEvent = static_cast<QKeyEvent *>(event);
+    if (keyEvent->key() == Qt::Key_Control && rubberBand.isVisible()) {
+      hide();
     }
-    return false;
+  }
+  return false;
 }
 
 void RubberBandManager::hide(){
-    rubberBand.hide();
+  rubberBand.hide();
 }
 
-void RubberBandManager::emphasize(Dock* dock){
-    rubberBand.setParent(dock);
-    rubberBand.setGeometry(dock->widget()->geometry());
-    rubberBand.show();
+void RubberBandManager::emphasize(Dock *dock){
+  rubberBand.setParent(dock);
+  rubberBand.setGeometry(dock->widget()->geometry());
+  rubberBand.show();
 }
 
 MainWindow::MainWindow(const QStringList& filenames) :
-    rubberBandManager(this)
+  rubberBandManager(this)
 {
   setupUi(this);
 
@@ -788,15 +788,15 @@ void MainWindow::onNavigationOpenContextMenu() {
 }
 
 void MainWindow::onNavigationCloseContextMenu() {
-    rubberBandManager.hide();
+  rubberBandManager.hide();
 }
 
 void MainWindow::onNavigationHoveredContextMenuEntry(){
-    auto *action = qobject_cast<QAction *>(sender());
-    if (!action || !action->property("id").isValid()) return;
+  auto *action = qobject_cast<QAction *>(sender());
+  if (!action || !action->property("id").isValid()) return;
 
-    Dock *dock = action->property("id").value<Dock *>();
-    rubberBandManager.emphasize(dock);
+  Dock *dock = action->property("id").value<Dock *>();
+  rubberBandManager.emphasize(dock);
 }
 
 void MainWindow::onNavigationTriggerContextMenuEntry(){
