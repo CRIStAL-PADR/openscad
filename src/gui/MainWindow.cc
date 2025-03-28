@@ -120,7 +120,7 @@
 #include "gui/Measurement.h"
 #include "gui/Export3mfDialog.h"
 #include "gui/ExportPdfDialog.h"
-#include "gui/ExternalToolInterface.h"
+#include "gui/ExternalToolService.h"
 #include "gui/FontListDialog.h"
 #include "gui/input/InputDriverEvent.h"
 #include "gui/input/InputDriverManager.h"
@@ -254,32 +254,6 @@ void addExportActions(const MainWindow *mainWindow, QToolBar *toolbar, QAction *
       toolbar->insertAction(action, it->second);
     }
   }
-}
-
-std::unique_ptr<ExternalToolInterface> createExternalToolService(
-  print_service_t serviceType, const QString& serviceName, FileFormat fileFormat)
-{
-  switch (serviceType) {
-  case print_service_t::NONE:
-    // TODO: Print warning
-    return nullptr;
-    break;
-  case print_service_t::PRINT_SERVICE: {
-    if (const auto printService = PrintService::getPrintService(serviceName.toStdString())) {
-      return createExternalPrintService(printService, fileFormat);
-    }
-    LOG("Unknown print service \"%1$s\"", serviceName.toStdString());
-    return nullptr;
-    break;
-  }
-  case print_service_t::OCTOPRINT:
-    return createOctoPrintService(fileFormat);
-    break;
-  case print_service_t::LOCAL_APPLICATION:
-    return createLocalProgramService(fileFormat);
-    break;
-  }
-  return {};
 }
 
 } // namespace
@@ -2243,37 +2217,6 @@ void MainWindow::csgRender()
   compileEnded();
 }
 
-void MainWindow::sendToExternalTool(ExternalToolInterface& externalToolService)
-{
-  const QFileInfo activeFile(activeEditor->filepath);
-  QString activeFileName = activeFile.fileName();
-  if (activeFileName.isEmpty()) activeFileName = "Untitled.scad";
-  // TODO: Replace suffix to match exported file format?
-
-  activeFileName = activeFileName + QString::fromStdString("." + fileformat::toSuffix(externalToolService.fileFormat()));
-
-  const bool export_status = externalToolService.exportTemporaryFile(rootGeom, activeFileName, &qglview->cam);
-  if (!export_status) {
-    return;
-  }
-
-  this->progresswidget = new ProgressWidget(this);
-  connect(this->progresswidget, &ProgressWidget::requestShow, this, &MainWindow::showProgress);
-
-  const bool process_status = externalToolService.process(activeFileName.toStdString(), [this](double permille) {
-    return network_progress_func(permille);
-  });
-  updateStatusBar(nullptr);
-  if (!process_status) {
-    return;
-  }
-
-  const auto url = externalToolService.getURL();
-  if (!url.empty()) {
-    QDesktopServices::openUrl(QUrl{QString::fromStdString(url)});
-  }
-}
-
 void MainWindow::action3DPrint()
 {
   if (GuiLocker::isLocked()) return;
@@ -2289,19 +2232,26 @@ void MainWindow::action3DPrint()
   const auto status = printInitDialog.exec();
 
   if (status == QDialog::Accepted) {
-    const print_service_t serviceType = printInitDialog.getServiceType();
+      const PrintServiceType serviceType = printInitDialog.getServiceType();
     const QString serviceName = printInitDialog.getServiceName();
     const FileFormat fileFormat = printInitDialog.getFileFormat();
 
     LOG("Selected File format: %1$s", fileformat::info(fileFormat).description);
 
     Preferences::Preferences::inst()->updateGUI();
-    const auto externalToolService = createExternalToolService(serviceType, serviceName, fileFormat);
-    if (!externalToolService) {
+    auto service = ExternalToolService::create(serviceType, serviceName, fileFormat);
+    if (!service) {
       LOG("Error: Unable to create service: %1$d %2$s %3$d", static_cast<int>(serviceType), serviceName.toStdString(), static_cast<int>(fileFormat));
       return;
     }
-    sendToExternalTool(*externalToolService);
+
+    QFileInfo fileinfo(activeEditor->filepath);
+    QString filename = fileinfo.fileName();
+
+    ExternalToolService::send(*service, filename, rootGeom, &qglview->cam, [](float permille){
+        std::cout << "PROGRESS " << permille << std::endl;
+        return true;
+    });
   }
 }
 

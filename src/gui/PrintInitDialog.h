@@ -37,11 +37,10 @@
 
 #include "io/export.h"
 #include "gui/InitConfigurator.h"
+#include "gui/PrintService.h"
 
 // Property name for remote print servive buttons
 constexpr inline auto PROPERTY_NAME = "printServiceName";
-
-enum class print_service_t : std::uint8_t { NONE, PRINT_SERVICE, OCTOPRINT, LOCAL_APPLICATION };
 
 class PrintInitDialog : public QDialog, public Ui::PrintInitDialog, public InitConfigurator
 {
@@ -54,7 +53,7 @@ public:
   PrintInitDialog();  
   int exec() override;
 
-  print_service_t getServiceType() const;
+  PrintServiceType getServiceType() const;
   QString getServiceName() const;
   FileFormat getFileFormat() const;
 
@@ -73,7 +72,7 @@ private:
   void setFileFormat(const std::string& identifier);
 
   QString htmlTemplate;
-  print_service_t selectedPrintService = print_service_t::NONE;
+  PrintServiceType selectedPrintService = PrintServiceType::NONE;
   QString selectedServiceName = "";
   FileFormat selectedFileFormat = FileFormat::ASCII_STL;
   QList<QPushButton *> remoteServiceButtons;

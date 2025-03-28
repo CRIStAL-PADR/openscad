@@ -42,6 +42,8 @@
 
 using PrintServices = std::unordered_map<std::string, std::unique_ptr<class PrintService>>;
 
+enum class PrintServiceType : std::uint8_t { NONE, PRINT_SERVICE, OCTOPRINT, LOCAL_APPLICATION };
+
 class PrintService
 {
 public:

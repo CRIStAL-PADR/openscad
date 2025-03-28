@@ -282,7 +282,6 @@ private slots:
   void csgRender();
   void csgReloadRender();
   void action3DPrint();
-  void sendToExternalTool(class ExternalToolInterface& externalToolService);
   void actionRender();
   void actionRenderDone(const std::shared_ptr<const Geometry>&);
   void cgalRender();

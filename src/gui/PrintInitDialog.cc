@@ -41,28 +41,28 @@ using S = Settings::Settings;
 
 namespace {
 
-QString toString(print_service_t printServiceType) {
+QString toString(PrintServiceType printServiceType) {
   switch (printServiceType) {
-  case print_service_t::PRINT_SERVICE:
+  case PrintServiceType::PRINT_SERVICE:
     return "PRINT_SERVICE";
-  case print_service_t::OCTOPRINT:
+  case PrintServiceType::OCTOPRINT:
     return "OCTOPRINT";
-  case print_service_t::LOCAL_APPLICATION:
+  case PrintServiceType::LOCAL_APPLICATION:
     return "LOCAL_APPLICATION";
   default:
     return "NONE";
   }
 }
 
-print_service_t fromString(const std::string &printServiceType) {
+PrintServiceType fromString(const std::string &printServiceType) {
   if (printServiceType == "PRINT_SERVICE") {
-    return print_service_t::PRINT_SERVICE;
+      return PrintServiceType::PRINT_SERVICE;
   } else if (printServiceType == "OCTOPRINT") {
-    return print_service_t::OCTOPRINT;
+      return PrintServiceType::OCTOPRINT;
   } else if (printServiceType == "LOCAL_APPLICATION") {
-    return print_service_t::LOCAL_APPLICATION;
+      return PrintServiceType::LOCAL_APPLICATION;
   } else
-    return print_service_t::NONE;
+      return PrintServiceType::NONE;
 }
 
 } // namespace
@@ -98,14 +98,14 @@ PrintInitDialog::PrintInitDialog()
   }
 
   const auto& service = S::defaultPrintService.value();
-  const print_service_t printService = fromString(service);
-  if (printService != print_service_t::NONE) {
+  const PrintServiceType printService = fromString(service);
+  if (printService != PrintServiceType::NONE) {
     this->selectedPrintService = printService;
     const auto& printServiceName = S::printServiceName.value();
     this->selectedServiceName = QString::fromStdString(printServiceName);
 
     switch (printService) {
-    case print_service_t::PRINT_SERVICE:
+    case PrintServiceType::PRINT_SERVICE:
       {
         for (const auto& button : this->buttonGroup->buttons()) {
           const auto& name = button->property(PROPERTY_NAME);
@@ -116,10 +116,10 @@ PrintInitDialog::PrintInitDialog()
         }
       }
       break;
-    case print_service_t::OCTOPRINT:
+    case PrintServiceType::OCTOPRINT:
       on_pushButtonOctoPrint_clicked();
       break;
-    case print_service_t::LOCAL_APPLICATION:
+    case PrintServiceType::LOCAL_APPLICATION:
       on_pushButtonLocalApplication_clicked();
       break;
     default:
@@ -159,7 +159,7 @@ void PrintInitDialog::addRemotePrintServiceButtons()
       fileformat::fromIdentifier(S::printServiceFileFormat.value(), currentFormat);
       this->textBrowser->setHtml(printService->getInfoHtml());
       this->populateFileFormatComboBox(printService->getFileFormats(), currentFormat);
-      this->selectedPrintService = print_service_t::PRINT_SERVICE;
+      this->selectedPrintService = PrintServiceType::PRINT_SERVICE;
       this->selectedServiceName = QString::fromStdString(key);
       this->comboBoxFileFormat->setEnabled(true);
       this->pushButtonOk->setEnabled(true);
@@ -194,7 +194,7 @@ void PrintInitDialog::on_pushButtonOctoPrint_clicked()
   initComboBox(this->comboBoxFileFormat, S::octoPrintFileFormat);
   this->on_comboBoxFileFormat_currentIndexChanged(this->comboBoxFileFormat->currentIndex());
 
-  this->selectedPrintService = print_service_t::OCTOPRINT;
+  this->selectedPrintService = PrintServiceType::OCTOPRINT;
   this->selectedServiceName = "";
 
   this->comboBoxFileFormat->setEnabled(true);
@@ -211,7 +211,7 @@ void PrintInitDialog::on_pushButtonLocalApplication_clicked()
 
   initComboBox(this->comboBoxFileFormat, S::localAppFileFormat);
   this->on_comboBoxFileFormat_currentIndexChanged(this->comboBoxFileFormat->currentIndex());
-  this->selectedPrintService = print_service_t::LOCAL_APPLICATION;
+  this->selectedPrintService = PrintServiceType::LOCAL_APPLICATION;
   this->selectedServiceName = "";
 
   this->comboBoxFileFormat->setEnabled(true);
@@ -246,13 +246,13 @@ void PrintInitDialog::on_pushButtonOk_clicked()
 
     const auto fileFormatIdentifier = fileformat::info(this->getFileFormat()).identifier;
     switch (this->selectedPrintService) {
-    case print_service_t::PRINT_SERVICE:
+    case PrintServiceType::PRINT_SERVICE:
       S::printServiceFileFormat.setValue(fileFormatIdentifier);
       break;
-    case print_service_t::OCTOPRINT:
+    case PrintServiceType::OCTOPRINT:
       S::octoPrintFileFormat.setValue(fileFormatIdentifier);
       break;
-    case print_service_t::LOCAL_APPLICATION:
+    case PrintServiceType::LOCAL_APPLICATION:
       S::localAppFileFormat.setValue(fileFormatIdentifier);
       break;
     default:
@@ -285,7 +285,7 @@ int PrintInitDialog::exec()
   return result;
 }
 
-print_service_t PrintInitDialog::getServiceType() const
+PrintServiceType PrintInitDialog::getServiceType() const
 {
   return this->selectedPrintService;
 }
