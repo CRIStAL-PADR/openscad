@@ -3440,6 +3440,13 @@ void MainWindow::onTabManagerEditorChanged(EditorInterface *newEditor)
     actionRenderPreview();
   }
 
+  // updates the search pannel
+  switch (activeEditor()->findState) {
+    case TabManager::FIND_REPLACE_VISIBLE: showFind(true); break;
+    case TabManager::FIND_VISIBLE: showFind(false); break;
+    default: hideFind(); break;
+  }
+
   // TODO (damien marchal) check that in case of multiple connect, the signals/slots connexion does not accumulate
   connect(newEditor, &EditorInterface::contentsChanged, this, &MainWindow::updateActionUndoState);
   connect(newEditor, &EditorInterface::escapePressed, this, &MainWindow::measureFinished);

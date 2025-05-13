@@ -40,7 +40,6 @@ TabManager::TabManager(MainWindow *o)
   connect(tabWidget, &QTabWidget::tabCloseRequested, this, &TabManager::closeTabRequested);
   connect(tabWidget, &QTabWidget::customContextMenuRequested, this, &TabManager::showTabHeaderContextMenu);
 
-  connect(tabWidget, &QTabWidget::currentChanged, this, &TabManager::updateFindState);
   connect(tabWidget, &QTabWidget::currentChanged, this, &TabManager::tabSwitched);
 }
 
@@ -424,15 +423,6 @@ void TabManager::setContentRenderState() //since last render
 {
   activeEditor()->contentsRendered = false;     //since last render
   activeEditor()->parameterWidget->setEnabled(false);
-}
-
-void TabManager::updateFindState()
-{
-  switch (activeEditor()->findState) {
-  case TabManager::FIND_REPLACE_VISIBLE: mainWindow()->showFind(true); break;
-  case TabManager::FIND_VISIBLE: mainWindow()->showFind(false); break;
-  default: mainWindow()->hideFind(); break;
-  }
 }
 
 void TabManager::onTabModified(EditorInterface *edt)

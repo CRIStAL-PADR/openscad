@@ -88,8 +88,6 @@ private slots:
   void showContextMenuEvent(const QPoint&);
   void showTabHeaderContextMenu(const QPoint&);
 
-  void updateFindState();
-
   void onHyperlinkIndicatorClicked(int pos);
 
 public slots:
