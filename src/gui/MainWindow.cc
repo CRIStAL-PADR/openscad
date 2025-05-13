@@ -452,7 +452,7 @@ MainWindow::MainWindow(const QStringList& filenames) :
   connect(this->fileActionSaveACopy, &QAction::triggered, this, &MainWindow::actionSaveACopy);
   connect(this->fileActionSaveAll, &QAction::triggered, tabManager, &TabManager::saveAll);
   connect(this->fileActionReload, &QAction::triggered, this, &MainWindow::actionReload);
-  connect(this->fileActionClose, &QAction::triggered, tabManager, &TabManager::closeCurrentTab);
+  connect(this->fileActionClose, &QAction::triggered, this, &MainWindow::actionClose);
   connect(this->fileActionQuit, &QAction::triggered, scadApp, &OpenSCADApp::quit, Qt::QueuedConnection);
   connect(this->fileShowLibraryFolder, &QAction::triggered, this, &MainWindow::actionShowLibraryFolder);
 
@@ -1754,6 +1754,13 @@ void MainWindow::actionReload()
     fileChangedOnDisk();     // force cached autoReloadId to update
     (void)tabManager->refreshDocument();     // ignore errors opening the file
   }
+}
+
+void MainWindow::actionClose()
+{
+    if(tabManager->count()>1)
+        tabManager->closeCurrentTab();
+    close();
 }
 
 void MainWindow::copyViewportTranslation()

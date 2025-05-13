@@ -244,6 +244,7 @@ private slots:
   void actionPythonSelectVenv();
   void actionSaveACopy();
   void actionReload();
+  void actionClose();
   void actionShowLibraryFolder();
   void convertTabsToSpaces();
   void copyText();

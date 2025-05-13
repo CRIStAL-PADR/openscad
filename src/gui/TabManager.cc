@@ -102,8 +102,7 @@ void TabManager::closeCurrentTab()
   assert(tabWidget != nullptr);
 
   /* Close tab or close the current window if only one tab is open. */
-  if (tabWidget->count() > 1) this->closeTabRequested(tabWidget->currentIndex());
-  else mainWindow()->close();
+  closeTabRequested(tabWidget->currentIndex());
 }
 
 void TabManager::nextTab()
