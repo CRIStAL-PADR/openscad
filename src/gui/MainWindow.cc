@@ -444,7 +444,7 @@ MainWindow::MainWindow(const QStringList& filenames) :
 
   // File menu
   connect(this->fileActionNewWindow, &QAction::triggered, this, &MainWindow::actionNewWindow);
-  connect(this->fileActionNew, &QAction::triggered, tabManager, &TabManager::actionNew);
+  connect(this->fileActionNew, &QAction::triggered, this, &MainWindow::actionNewEditor);
   connect(this->fileActionOpenWindow, &QAction::triggered, this, &MainWindow::actionOpenWindow);
   connect(this->fileActionOpen, &QAction::triggered, this, &MainWindow::actionOpen);
   connect(this->fileActionSave, &QAction::triggered, this, &MainWindow::actionSave);
@@ -1519,6 +1519,13 @@ void MainWindow::actionOpen()
 void MainWindow::actionNewWindow()
 {
   new MainWindow(QStringList());
+}
+
+void MainWindow::actionNewEditor()
+{
+  if (!editorDock->isVisible())
+      editorDock->setVisible(true);   //if editor hidden, make it visible
+  tabManager->createTab("");
 }
 
 void MainWindow::actionOpenWindow()

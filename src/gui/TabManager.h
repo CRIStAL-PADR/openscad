@@ -95,7 +95,6 @@ private slots:
   void onHyperlinkIndicatorClicked(int pos);
 
 public slots:
-  void actionNew();
   void copy();
   void setContentRenderState(); // since last render
   void onTabModified(EditorInterface *);

@@ -233,6 +233,7 @@ public slots:
 private slots:
   void actionOpen();
   void actionNewWindow();
+  void actionNewEditor();
   void actionOpenWindow();
   void actionOpenRecent();
   void actionOpenExample();

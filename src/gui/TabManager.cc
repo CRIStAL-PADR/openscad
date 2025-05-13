@@ -117,12 +117,6 @@ void TabManager::prevTab()
   tabWidget->setCurrentIndex((tabWidget->currentIndex() + tabWidget->count() - 1) % tabWidget->count());
 }
 
-void TabManager::actionNew()
-{
-  if (!mainWindow()->editorDock->isVisible()) mainWindow()->editorDock->setVisible(true);   //if editor hidden, make it visible
-  createTab("");
-}
-
 QSet<EditorInterface *> TabManager::editors() const
 {
   QSet<EditorInterface *> editors;
