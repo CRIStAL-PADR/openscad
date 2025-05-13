@@ -1554,6 +1554,11 @@ void MainWindow::clearRecentFiles()
   updateRecentFileActions();
 }
 
+void MainWindow::updateActionUndoState()
+{
+    editActionUndo->setEnabled(activeEditor()->canUndo());
+}
+
 // Updates the content of the recent files menu entries
 // by iterating over the recently opened files.
 void MainWindow::updateRecentFileActions()
@@ -3429,6 +3434,9 @@ void MainWindow::onTabManagerEditorChanged(EditorInterface *newEditor)
   if (renderedEditor == nullptr) {
     actionRenderPreview();
   }
+
+  // TODO (damien marchal) check that in case of multiple connect, the signals/slots connexion does not accumulate
+  connect(newEditor, &EditorInterface::contentsChanged, this, &MainWindow::updateActionUndoState);
   connect(newEditor, &EditorInterface::escapePressed, this, &MainWindow::measureFinished);
 }
 

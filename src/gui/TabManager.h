@@ -80,7 +80,6 @@ private:
 private slots:
   void tabSwitched(int);
   void closeTabRequested(int);
-  void updateActionUndoState();
   void copyFileName();
   void copyFilePath();
   void openFolder();

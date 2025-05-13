@@ -174,7 +174,6 @@ void TabManager::createTab(const QString& filename)
   connect(mainWindow()->editActionZoomTextIn, &QAction::triggered, scintillaEditor, &EditorInterface::zoomIn);
   connect(mainWindow()->editActionZoomTextOut, &QAction::triggered, scintillaEditor, &EditorInterface::zoomOut);
 
-  connect(scintillaEditor, &EditorInterface::contentsChanged, this, &TabManager::updateActionUndoState);
   connect(scintillaEditor, &EditorInterface::contentsChanged, mainWindow(),  &MainWindow::editorContentChanged);
   connect(scintillaEditor, &EditorInterface::contentsChanged, this, &TabManager::setContentRenderState);
   connect(scintillaEditor, &EditorInterface::modificationChanged, this, &TabManager::onTabModified);
@@ -296,11 +295,6 @@ void TabManager::jumpToNextError()
 void TabManager::setFocus()
 {
   activeEditor()->setFocus();
-}
-
-void TabManager::updateActionUndoState()
-{
-  mainWindow()->editActionUndo->setEnabled(activeEditor()->canUndo());
 }
 
 void TabManager::onHyperlinkIndicatorClicked(int val)

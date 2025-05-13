@@ -249,6 +249,7 @@ private slots:
   void actionShowLibraryFolder();
   void convertTabsToSpaces();
   void copyText();
+  void updateActionUndoState();
 
   void instantiateRoot();
   void compileDone(bool didchange);
