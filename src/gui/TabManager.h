@@ -64,7 +64,9 @@ signals:
   void editorNameChanged(const QString& name);
 
 private:
-  MainWindow *par;
+  MainWindow* mainWindow(){return __deprecated_par__;}
+
+  MainWindow *__deprecated_par__;
   QTabWidget *tabWidget;
 
   bool maybeSave(int);
