@@ -3418,6 +3418,11 @@ void MainWindow::onTabManagerEditorChanged(EditorInterface *newEditor)
 {
   if (newEditor == nullptr) return;
 
+  // stop a possibly running animation
+  animateWidget->pauseAnimation();
+  animateWidget->e_tval->setText("");
+
+  // set the parameter widget corresponding to the new widget.
   parameterDock->setWidget(newEditor->parameterWidget);
   editActionUndo->setEnabled(newEditor->canUndo());
 

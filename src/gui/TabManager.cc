@@ -40,7 +40,6 @@ TabManager::TabManager(MainWindow *o)
   connect(tabWidget, &QTabWidget::tabCloseRequested, this, &TabManager::closeTabRequested);
   connect(tabWidget, &QTabWidget::customContextMenuRequested, this, &TabManager::showTabHeaderContextMenu);
 
-  connect(tabWidget, &QTabWidget::currentChanged, this, &TabManager::stopAnimation);
   connect(tabWidget, &QTabWidget::currentChanged, this, &TabManager::updateFindState);
   connect(tabWidget, &QTabWidget::currentChanged, this, &TabManager::tabSwitched);
 }
@@ -425,12 +424,6 @@ void TabManager::setContentRenderState() //since last render
 {
   activeEditor()->contentsRendered = false;     //since last render
   activeEditor()->parameterWidget->setEnabled(false);
-}
-
-void TabManager::stopAnimation()
-{
-  mainWindow()->animateWidget->pauseAnimation();
-  mainWindow()->animateWidget->e_tval->setText("");
 }
 
 void TabManager::updateFindState()
