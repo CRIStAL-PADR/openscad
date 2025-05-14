@@ -343,6 +343,8 @@ void TabManager::showContextMenuEvent(const QPoint& pos)
 {
   auto menu = activeEditor()->createStandardContextMenu();
 
+  // TODO: to cut the dependence from TabManager to MainWindow, a solution
+  // has to be found here. I'm not sure how to refactor this.
   menu->addSeparator();
   menu->addAction(mainWindow()->editActionFind);
   menu->addAction(mainWindow()->editActionFindNext);
