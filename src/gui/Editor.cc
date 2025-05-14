@@ -15,3 +15,11 @@ void EditorInterface::wheelEvent(QWheelEvent *event)
     QWidget::wheelEvent(event);
   }
 }
+
+bool EditorInterface::isDirty()
+{
+    bool dirty = isContentModified();
+    if(parameterWidget)
+        dirty |= parameterWidget->isModified();
+    return dirty;
+}

@@ -154,6 +154,10 @@ private slots:
   void onNavigationTriggerContextMenuEntry();
 
   // implement the different actions needed when
+  // the tab manager editor is created
+  void onTabManagerEditorCreated(EditorInterface *);
+
+  // implement the different actions needed when
   // the tab manager editor is changed.
   void onTabManagerEditorChanged(EditorInterface *);
 

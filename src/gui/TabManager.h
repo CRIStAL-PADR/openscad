@@ -54,6 +54,7 @@ signals:
   // opened on.
   void currentEditorChanged(EditorInterface *editor);
   void editorAboutToClose(EditorInterface *editor);
+  void editorCreated(EditorInterface *editor);
 
   void tabCountChanged(int);
 

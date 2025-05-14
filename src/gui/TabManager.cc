@@ -145,9 +145,7 @@ void TabManager::createTab(const QString& filename)
   assert(par != nullptr);
 
   auto scintillaEditor = new ScintillaEditor(tabWidget);
-  scintillaEditor->parameterWidget = new ParameterWidget(mainWindow()->parameterDock);
-  connect(scintillaEditor->parameterWidget, &ParameterWidget::parametersChanged, mainWindow(), &MainWindow::actionRenderPreview);
-  mainWindow()->parameterDock->setWidget(scintillaEditor->parameterWidget);
+  emit editorCreated(scintillaEditor);
 
   // clearing default mapping of keyboard shortcut for font size
   QsciCommandSet *qcmdset = scintillaEditor->qsci->standardCommands();
@@ -156,12 +154,7 @@ void TabManager::createTab(const QString& filename)
   qcmd = qcmdset->boundTo(Qt::ControlModifier | Qt::Key_Minus);
   qcmd->setKey(0);
 
-  connect(scintillaEditor, &ScintillaEditor::uriDropped, mainWindow(), &MainWindow::handleFileDrop);
-  connect(scintillaEditor, &ScintillaEditor::previewRequest, mainWindow(), &MainWindow::actionRenderPreview);
   connect(scintillaEditor, &EditorInterface::showContextMenuEvent, this, &TabManager::showContextMenuEvent);
-  connect(scintillaEditor, &EditorInterface::focusIn, this, [ scintillaEditor, this ]() {
-    mainWindow()->setLastFocus(scintillaEditor);
-  });
 
   connect(GlobalPreferences::inst(), &Preferences::editorConfigChanged, scintillaEditor, &ScintillaEditor::applySettings);
   connect(GlobalPreferences::inst(), &Preferences::autocompleteChanged, scintillaEditor, &ScintillaEditor::onAutocompleteChanged);
@@ -169,16 +162,8 @@ void TabManager::createTab(const QString& filename)
   scintillaEditor->applySettings();
   scintillaEditor->addTemplate();
 
-  connect(mainWindow()->editActionZoomTextIn, &QAction::triggered, scintillaEditor, &EditorInterface::zoomIn);
-  connect(mainWindow()->editActionZoomTextOut, &QAction::triggered, scintillaEditor, &EditorInterface::zoomOut);
-
-  connect(scintillaEditor, &EditorInterface::contentsChanged, mainWindow(),  &MainWindow::editorContentChanged);
   connect(scintillaEditor, &EditorInterface::contentsChanged, this, &TabManager::setContentRenderState);
   connect(scintillaEditor, &EditorInterface::modificationChanged, this, &TabManager::onTabModified);
-  connect(scintillaEditor->parameterWidget, &ParameterWidget::modificationChanged, [scintillaEditor, this] {
-    std::cout << "Parameter Widget modificaiton changed " << std::endl;
-    onTabModified(scintillaEditor);
-  });
 
   connect(GlobalPreferences::inst(), &Preferences::fontChanged, scintillaEditor, &EditorInterface::initFont);
   connect(GlobalPreferences::inst(), &Preferences::syntaxHighlightChanged, scintillaEditor, &EditorInterface::setHighlightScheme);
@@ -483,10 +468,8 @@ std::tuple<QString, QString> TabManager::getEditorTabNameWithModifier(EditorInte
   auto [fname, fpath] = getEditorTabName(edt);
 
   // Add the "modification" star if it was changed.
-  bool isDirty = edt->isContentModified()
-    || edt->parameterWidget->isModified();
-
-  if (isDirty) fname += "*";
+  // the editor is dirty iff its content is modified or the parameter widget is dirty
+  if (edt->isDirty()) fname += "*";
 
   return {fname, fpath};
 }

@@ -44,6 +44,9 @@ public:
   virtual void setCursorPosition(int /*line*/, int /*col*/) {}
   virtual void setFocus() = 0;
 
+  // returns true if the content or the parameter widget is dirty.
+  bool isDirty();
+
 signals:
   void contentsChanged();
   void modificationChanged(EditorInterface *);

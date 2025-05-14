@@ -366,6 +366,7 @@ MainWindow::MainWindow(const QStringList& filenames) :
   connect(this->editActionJumpToNextError, &QAction::triggered, tabManager, &TabManager::jumpToNextError);
 
   connect(tabManager, &TabManager::editorAboutToClose, this, &MainWindow::onTabManagerAboutToCloseEditor);
+  connect(tabManager, &TabManager::editorCreated, this, &MainWindow::onTabManagerEditorCreated);
   connect(tabManager, &TabManager::currentEditorChanged, this, &MainWindow::onTabManagerEditorChanged);
   connect(tabManager, &TabManager::editorContentReloaded, this, &MainWindow::onTabManagerEditorContentReloaded);
   connect(tabManager, &TabManager::editorNameChanged, this, &MainWindow::onTabManagerEditorNameChanged);
@@ -3414,6 +3415,39 @@ void MainWindow::onTabManagerEditorContentReloaded(EditorInterface *reloadedEdit
   updateRecentFileActions();
 }
 
+void MainWindow::onTabManagerEditorCreated(EditorInterface *editor)
+{
+    // Each file, can have their own widget for parametrization of the geometry
+    auto widget = new ParameterWidget(parameterDock);
+    connect(widget, &ParameterWidget::parametersChanged, this, &MainWindow::actionRenderPreview);
+
+    // Propagate the change from the parameter widget to the fiel status of the associated editor in tabManager.
+    connect(widget, &ParameterWidget::modificationChanged, [editor, this] {
+      tabManager->onTabModified(editor);
+    });
+
+    parameterDock->setWidget(widget);
+    editor->parameterWidget = widget;
+
+
+    // Add extra behavior in case the editor is a scintilla editor.
+    auto scintillaEditor = dynamic_cast<ScintillaEditor*>(editor);
+    if(scintillaEditor){
+        connect(scintillaEditor, &ScintillaEditor::uriDropped, this, &MainWindow::handleFileDrop);
+        connect(scintillaEditor, &ScintillaEditor::previewRequest, this, &MainWindow::actionRenderPreview);
+    }
+
+    connect(editor, &EditorInterface::focusIn, this, [ editor, this ]() { setLastFocus(editor); });
+    connect(editor, &EditorInterface::contentsChanged, this, &MainWindow::updateActionUndoState);
+    connect(editor, &EditorInterface::contentsChanged, this,  &MainWindow::editorContentChanged);
+    connect(editor, &EditorInterface::escapePressed, this, &MainWindow::measureFinished);
+
+    // Connect the two short cut for zoom in and out.
+    connect(editActionZoomTextIn, &QAction::triggered, editor, &EditorInterface::zoomIn);
+    connect(editActionZoomTextOut, &QAction::triggered, editor, &EditorInterface::zoomOut);
+
+}
+
 void MainWindow::onTabManagerEditorChanged(EditorInterface *newEditor)
 {
   if (newEditor == nullptr) return;
@@ -3446,10 +3480,6 @@ void MainWindow::onTabManagerEditorChanged(EditorInterface *newEditor)
     case TabManager::FIND_VISIBLE: showFind(false); break;
     default: hideFind(); break;
   }
-
-  // TODO (damien marchal) check that in case of multiple connect, the signals/slots connexion does not accumulate
-  connect(newEditor, &EditorInterface::contentsChanged, this, &MainWindow::updateActionUndoState);
-  connect(newEditor, &EditorInterface::escapePressed, this, &MainWindow::measureFinished);
 }
 
 Dock *MainWindow::findVisibleDockToActivate(int offset) const
