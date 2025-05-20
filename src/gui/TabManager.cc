@@ -133,7 +133,7 @@ void TabManager::open(const QString& filename)
     }
   }
 
-  if (activeEditor()->filepath.isEmpty() && !activeEditor()->isContentModified() && !activeEditor()->parameterWidget->isModified()) {
+  if (activeEditor()->filepath.isEmpty() && !activeEditor()->isDirty()) {
     openTabFile(filename);
   } else {
     createTab(filename);
@@ -527,7 +527,7 @@ bool TabManager::maybeSave(int x)
 bool TabManager::shouldSave()
 {
   for (auto editor : editors()) {
-    if (editor->isContentModified() || editor->parameterWidget->isModified())
+    if (editor->isDirty())
         return true;
   }
   return false;
@@ -658,7 +658,7 @@ bool TabManager::saveACopy(EditorInterface *edt)
 bool TabManager::saveAll()
 {
   for (auto editor : editors()) {
-    if (editor->isContentModified() || editor->parameterWidget->isModified()) {
+    if (editor->isDirty()) {
       if (!save(editor)) {
         return false;
       }
