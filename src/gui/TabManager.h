@@ -33,7 +33,7 @@ public:
                         const QString& tabTooltip,
                         EditorInterface *edt = nullptr);
   bool refreshDocument(); // returns false if the file could not be opened
-  bool shouldClose();
+  bool shouldSave();
   bool save(EditorInterface *edt);
   bool saveAs(EditorInterface *edt);
   bool saveACopy(EditorInterface *edt);
@@ -86,7 +86,6 @@ private slots:
   void openFolder();
   void closeTab();
 
-  void showContextMenuEvent(const QPoint&);
   void showTabHeaderContextMenu(const QPoint&);
 
   void onHyperlinkIndicatorClicked(int pos);

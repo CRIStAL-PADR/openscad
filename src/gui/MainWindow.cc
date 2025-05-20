@@ -3415,6 +3415,26 @@ void MainWindow::onTabManagerEditorContentReloaded(EditorInterface *reloadedEdit
   updateRecentFileActions();
 }
 
+void MainWindow::showEditorContextMenu(const QPoint& pos)
+{
+  auto editor = dynamic_cast<EditorInterface*>(sender());
+  if(!editor)
+      return;
+
+  auto menu = editor->createStandardContextMenu();
+
+  menu->addSeparator();
+  menu->addAction(editActionFind);
+  menu->addAction(editActionFindNext);
+  menu->addAction(editActionFindPrevious);
+  menu->addSeparator();
+  menu->addAction(editActionInsertTemplate);
+  menu->addAction(editActionFoldAll);
+  menu->exec(editor->mapToGlobal(pos));
+
+  delete menu;
+}
+
 void MainWindow::onTabManagerEditorCreated(EditorInterface *editor)
 {
     // Each file, can have their own widget for parametrization of the geometry
@@ -3437,6 +3457,7 @@ void MainWindow::onTabManagerEditorCreated(EditorInterface *editor)
         connect(scintillaEditor, &ScintillaEditor::previewRequest, this, &MainWindow::actionRenderPreview);
     }
 
+    connect(editor, &EditorInterface::showContextMenuEvent, this, &MainWindow::showEditorContextMenu);
     connect(editor, &EditorInterface::focusIn, this, [ editor, this ]() { setLastFocus(editor); });
     connect(editor, &EditorInterface::contentsChanged, this, &MainWindow::updateActionUndoState);
     connect(editor, &EditorInterface::contentsChanged, this,  &MainWindow::editorContentChanged);
@@ -3617,7 +3638,32 @@ void MainWindow::helpFontInfo()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-  if (tabManager->shouldClose()) {
+  bool canClose=false;
+  if (tabManager->shouldSave())
+  {
+      QMessageBox box(this);
+      box.setText(_("Some tabs have unsaved changes."));
+      box.setInformativeText(_("Do you want to save all your changes?"));
+      box.setStandardButtons(QMessageBox::SaveAll | QMessageBox::Discard | QMessageBox::Cancel);
+      box.setDefaultButton(QMessageBox::SaveAll);
+      box.setIcon(QMessageBox::Warning);
+      box.setWindowModality(Qt::ApplicationModal);
+      #ifdef Q_OS_MACOS
+      // Cmd-D is the standard shortcut for this button on Mac
+      box.button(QMessageBox::Discard)->setShortcut(QKeySequence("Ctrl+D"));
+      box.button(QMessageBox::Discard)->setShortcutEnabled(true);
+      #endif
+      auto ret = (QMessageBox::StandardButton) box.exec();
+      if (ret == QMessageBox::Cancel) {
+        canClose=false;
+      } else if (ret == QMessageBox::Discard) {
+        canClose=true;
+      } else if (ret == QMessageBox::SaveAll) {
+        canClose=tabManager->saveAll();
+      }
+  }
+
+  if (canClose) {
     isClosing = true;
     progress_report_fin();
     // Disable invokeMethod calls for consoleOutput during shutdown,

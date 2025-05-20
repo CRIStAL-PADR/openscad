@@ -154,8 +154,6 @@ void TabManager::createTab(const QString& filename)
   qcmd = qcmdset->boundTo(Qt::ControlModifier | Qt::Key_Minus);
   qcmd->setKey(0);
 
-  connect(scintillaEditor, &EditorInterface::showContextMenuEvent, this, &TabManager::showContextMenuEvent);
-
   connect(GlobalPreferences::inst(), &Preferences::editorConfigChanged, scintillaEditor, &ScintillaEditor::applySettings);
   connect(GlobalPreferences::inst(), &Preferences::autocompleteChanged, scintillaEditor, &ScintillaEditor::onAutocompleteChanged);
   connect(GlobalPreferences::inst(), &Preferences::characterThresholdChanged, scintillaEditor, &ScintillaEditor::onCharacterThresholdChanged);
@@ -337,24 +335,6 @@ void TabManager::closeTab()
   applyAction(QObject::sender(), [this](int idx, EditorInterface *){
     closeTabRequested(idx);
   });
-}
-
-void TabManager::showContextMenuEvent(const QPoint& pos)
-{
-  auto menu = activeEditor()->createStandardContextMenu();
-
-  // TODO: to cut the dependence from TabManager to MainWindow, a solution
-  // has to be found here. I'm not sure how to refactor this.
-  menu->addSeparator();
-  menu->addAction(mainWindow()->editActionFind);
-  menu->addAction(mainWindow()->editActionFindNext);
-  menu->addAction(mainWindow()->editActionFindPrevious);
-  menu->addSeparator();
-  menu->addAction(mainWindow()->editActionInsertTemplate);
-  menu->addAction(mainWindow()->editActionFoldAll);
-  menu->exec(activeEditor()->mapToGlobal(pos));
-
-  delete menu;
 }
 
 void TabManager::showTabHeaderContextMenu(const QPoint& pos)
@@ -540,37 +520,15 @@ bool TabManager::maybeSave(int x)
 }
 
 /*!
- * Called for whole window close, returning false will abort the close
- * operation.
+ * Indicates if any file is in a "modified" state and thus has to be saved.
  */
-bool TabManager::shouldClose()
+bool TabManager::shouldSave()
 {
   for (auto editor : editors()) {
-    if (!(editor->isContentModified() || editor->parameterWidget->isModified())) continue;
-
-    QMessageBox box(mainWindow());
-    box.setText(_("Some tabs have unsaved changes."));
-    box.setInformativeText(_("Do you want to save all your changes?"));
-    box.setStandardButtons(QMessageBox::SaveAll | QMessageBox::Discard | QMessageBox::Cancel);
-    box.setDefaultButton(QMessageBox::SaveAll);
-    box.setIcon(QMessageBox::Warning);
-    box.setWindowModality(Qt::ApplicationModal);
-#ifdef Q_OS_MACOS
-    // Cmd-D is the standard shortcut for this button on Mac
-    box.button(QMessageBox::Discard)->setShortcut(QKeySequence("Ctrl+D"));
-    box.button(QMessageBox::Discard)->setShortcutEnabled(true);
-#endif
-    auto ret = (QMessageBox::StandardButton) box.exec();
-
-    if (ret == QMessageBox::Cancel) {
-      return false;
-    } else if (ret == QMessageBox::Discard) {
-      return true;
-    } else if (ret == QMessageBox::SaveAll) {
-      return saveAll();
-    }
+    if (editor->isContentModified() || editor->parameterWidget->isModified())
+        return true;
   }
-  return true;
+  return false;
 }
 
 void TabManager::saveError(const QIODevice& file, const std::string& msg, const QString& filepath)

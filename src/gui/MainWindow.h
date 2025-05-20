@@ -138,6 +138,7 @@ private slots:
   void setFont(const QString& family, uint size);
   void setColorScheme(const QString& cs);
   void showProgress();
+  void showEditorContextMenu(const QPoint&);
   void openCSGSettingsChanged();
   void consoleOutput(const Message& msgObj);
   void setSelection(int index);
