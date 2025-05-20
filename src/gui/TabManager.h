@@ -36,6 +36,7 @@ public:
   bool shouldSave();
   bool save(EditorInterface *edt);
   bool saveAs(EditorInterface *edt);
+  bool saveAs(EditorInterface *edt, const QString& filepath);
   bool saveACopy(EditorInterface *edt);
   void open(const QString& filename);
   size_t count();
